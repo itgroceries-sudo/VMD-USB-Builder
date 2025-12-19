@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/Wcm/2002/10/dcl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UseConfigurationSet>true</UseConfigurationSet>
+            <UserData>
+                <ProductKey>
+                    <WillShowUI>Always</WillShowUI>
+                </ProductKey>
+            </UserData>
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>cmd.exe /c for %d in (C D E F G H I J K L M N O P Q R S T U V W Y) do if exist %d:\Support\VMD_Installation.cmd Call %d:\Support\VMD_Installation.cmd</Path>
+                    <Description>Run VMD Driver Installer</Description>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+    </settings>
+</unattend>
