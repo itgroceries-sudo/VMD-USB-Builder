@@ -5,27 +5,40 @@ param([switch]$IsLegacyMode)
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# [CONFIG VMD]
+# [CONFIG]
 $GitLabRaw = "https://gitlab.com/itgroceries/itg_vmd_builder/-/raw/main"
+$SelfScriptURL = "$GitLabRaw/VMD_Installer.ps1" 
 $WorkDir   = "$env:TEMP\ITG_VMD_Build"
 $SupportDir = "$WorkDir\Support"
-
-# [CONFIG LAUNCHER]
 $tmpDir  = "$env:TEMP"
 $RandomID = -join ((48..57) | Get-Random -Count 4 | % {[char]$_})
-$LauncherFile = "$tmpDir\ITG_Launcher_$RandomID.ps1"
 $IconFile = "$tmpDir\ITGBlog.ico"
 
-# --- [STEP 0] SELF-HIDE ---
+# --- [STEP 0] SELF-HIDE (Local Only) ---
 if ($PSCommandPath -and (Test-Path $PSCommandPath)) {
     try { (Get-Item $PSCommandPath).Attributes = 'Hidden' } catch {}
 }
 
-# --- [STEP 1] ADMIN CHECK ---
+# --- [STEP 1] ADMIN CHECK (WEB-AWARE FIX) ---
 $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $PSCommandPath -or -not $IsAdmin) {
-    if (-not $PSCommandPath) { try { Invoke-WebRequest -Uri "$BaseURL/LauncherCloud.ps1" -OutFile $LauncherFile -UseBasicParsing } catch { exit } $TargetFile = $LauncherFile } else { $TargetFile = $PSCommandPath }
-    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TargetFile`"" -Verb RunAs; exit
+
+if (-not $IsAdmin) {
+    if (-not $PSCommandPath) {
+		$TargetFile = "$env:TEMP\ITG_VMD_WebLauncher.ps1"
+        try {
+            Write-Host "Requesting Admin Access..." -ForegroundColor Yellow
+            Invoke-WebRequest -Uri $SelfScriptURL -OutFile $TargetFile -UseBasicParsing -ErrorAction Stop
+        } catch {
+            Write-Host "Error: Cannot download self for elevation." -ForegroundColor Red
+            Pause
+            exit
+        }
+    } else {
+        $TargetFile = $PSCommandPath
+    }
+
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TargetFile`"" -Verb RunAs
+    exit
 }
 
 # --- [STEP 2] VISUAL HELPERS ---
