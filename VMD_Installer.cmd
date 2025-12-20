@@ -77,19 +77,11 @@ echo    !Magenta!!Bold!IRST Universal Driver Installer !CURRENT_VER! Stable!Rese
 echo                 !Cyan!VMD Driver Installer by IT Groceries Shop!Reset!
 echo !Bold!!White!================================================================================!Reset!
 echo.
-:: 1. Display Hardware and Disk Info
-:: echo Starting system and storage discovery... !Reset!!Bold!!Yellow!Disk Info Here!Red!
-:: if Exist X:\Windows\ (
-::     wmic diskdrive get deviceid,model,size
-:: ) ELSE (
-::     powershell -Command "$diskinfo = Get-PhysicalDisk | Select-Object DeviceId, Model, @{Name='Size (GB)'; Expression={[math]::Round($_.Size / 1GB)}} | Format-Table -AutoSize | Out-String -Width 78; $diskinfo.Trim().Split([System.Environment]::NewLine) | Where-Object { $_ -ne '' }"
-:: )
-Call :PREPARE_DISK_INFO
-echo  !Bold!!Yellow!Detected Storage:!Reset!
+Call :PREPARE_DISK_INFO 
+echo  !Bold!!Yellow!Detected Storage:!Green! OS: !Red!!TARGET_OS_DRIVE!\Windows!Reset!
 echo    !White!!DISK_LINE_1!!Reset!
 echo    !White!!DISK_LINE_2!!Reset!
 echo    !White!!DISK_LINE_3!!Reset!
-
 echo.
 if defined DETECTED_GEN (
     echo.        !White!^*^*^*^* !Green!HARDWARE DETECTED ^=^: !Magenta!^(!White!!Bold!!DETECTED_GEN!!Magenta!^) !White!^*^*^*^*!Reset!!Reset!
@@ -109,7 +101,6 @@ echo !White!--------------------------------------------------------------------
 echo    !Bold![ 18 ]  !Yellow!For Intel 11th Gen      (Folder: VMD_v18)!Reset!
 echo    !Bold![ 19 ]  !Yellow!For Intel 12th Gen      (Folder: VMD_v19)!Reset!
 echo    !Bold![ 20 ]  !Yellow!For Intel 13th-14th Gen (Folder: VMD_v20)!Reset!
-echo    !Bold![ 21 ]  !Yellow!For Intel 15th Gen      (Folder: VMD_v21)!Reset!
 
 echo !White!--------------------------------------------------------------------------------!Reset!
 
@@ -118,6 +109,24 @@ echo    !Bold![ S  ]  !Cyan!Shutdown!Reset!
 echo    !Bold![ X  ]  !Green!Exit Script!Reset!
 
 if "!WIN_FOUND!"=="1" echo    !Bold![ B  ]  !Red!Go to Firmware/BIOS !White!(GO2BIOS)!Reset!
+if "!WIN_FOUND!"=="1" ping 127.0.0.1 -n 5 >nul
+if "!WIN_FOUND!"=="1" (
+    if not defined ALREADY_ASKED (
+        set "ALREADY_ASKED=1"
+        echo Set WshShell = CreateObject^("WScript.Shell"^) > "%TEMP%\AskExit.vbs"
+        echo Res = MsgBox^("Windows Found^! (!TARGET_OS_DRIVE!\Windows) Install Complete." ^& vbCrLf ^& "Do you want to EXIT?", 36, "IT Groceries Shop"^) >> "%TEMP%\AskExit.vbs"
+        echo WScript.Quit Res >> "%TEMP%\AskExit.vbs"
+        cscript //nologo "%TEMP%\AskExit.vbs"
+        set "USER_CHOICE=!ERRORLEVEL!"
+        del "%TEMP%\AskExit.vbs" >nul
+        if "!USER_CHOICE!"=="6" (
+            cls
+            echo. & echo    Exiting...
+            timeout /t 1 >nul
+            exit
+        )
+    )
+)
 
 echo.
 echo !Bold!!White!================================================================================!Reset!
@@ -129,14 +138,13 @@ if "!WIN_FOUND!"=="1" (
     set "WIN_STATUS=!Red!(Win_Not_Found)!Reset!"
 )
 
-echo !Bold!!Yellow!Enter choice (18, 19, 20, 21, R/S/B/X): !Reset! 	!Green![Win_Found] ^=^=: !WIN_STATUS!
+echo !Bold!!Yellow!Enter choice (18, 19, 20, 21, R/S/B/X): !Reset!
 set /p CHOICE=
 
 :: Input Check
 if "!CHOICE!"=="18" GOTO :LOAD_V18
 if "!CHOICE!"=="19" GOTO :LOAD_V19
 if "!CHOICE!"=="20" GOTO :LOAD_V20
-if "!CHOICE!"=="21" GOTO :LOAD_V21
 if /i "!CHOICE!"=="R" GOTO :DO_REBOOT
 if /i "!CHOICE!"=="S" GOTO :DO_SHUTDOWN
 if /i "!CHOICE!"=="X" GOTO :DO_EXIT
@@ -168,10 +176,6 @@ GOTO :MAIN_MENU
 :LOAD_V20
     call :InstallDriver "VMD_v20"
     GOTO :MAIN_MENU
-	
-:LOAD_V21
-	call :InstallDriver "VMD_v21"
-	GOTO :MAIN_MENU
 
 :: -----------------------------------------------------------------------------
 :: SUBROUTINE: InstallDriver
@@ -218,6 +222,7 @@ if Exist X:\Windows\ (
     powershell -Command "$diskinfo = Get-PhysicalDisk | Select-Object DeviceId, Model, @{Name='Size (GB)'; Expression={[math]::Round($_.Size / 1GB)}} | Format-Table -AutoSize | Out-String -Width 78; $diskinfo.Trim().Split([System.Environment]::NewLine) | Where-Object { $_ -ne '' }"
 )
 echo.
+echo !Green! WIN_FOUND : !WIN_STATUS!
 echo Press any key to return to menu...
 pause >nul
 EXIT /B
@@ -318,34 +323,38 @@ set "DISK_LINE_1=!Red!No Disk Found!Reset!"
 set "DISK_LINE_2="
 set "DISK_LINE_3="
 set "DISK_COUNT=0"
-
-for /f "tokens=2,3,4 delims=," %%A in ('wmic diskdrive get Index^,Model^,Size /format:csv ^| findstr [0-9]') do (
-    set /a DISK_COUNT+=1
-    
-    set "IDX=%%A"
-    set "MODEL=%%B"
-    set "RSIZE=%%C"
-
-    for /f "delims=" %%D in ("!RSIZE!") do set "RSIZE=%%D"
-
-    if defined RSIZE (
-        if "!RSIZE:~9!"=="" (
-           set "SIZE_GB=0" 
-        ) else (
-           set "SIZE_GB=!RSIZE:~0,-9!"
-        )
-    ) else (
-        set "SIZE_GB=0"
+if exist "X:\Windows\" ( 
+    for /f "tokens=2,3,4 delims=," %%A in ('wmic diskdrive get Index^,Model^,Size /format:csv ^| findstr [0-9]') do (
+        set /a DISK_COUNT+=1
+        set "IDX=%%A"
+        set "MODEL=%%B"
+        set "RSIZE=%%C"
+        for /f "delims=" %%D in ("!RSIZE!") do set "RSIZE=%%D"
+        if defined RSIZE (
+            if "!RSIZE:~9!"=="" ( set "SIZE_GB=0" ) else ( set "SIZE_GB=!RSIZE:~0,-9!" )
+        ) else ( set "SIZE_GB=0" )
+        set "LINE_CONTENT=!Bold!!Yellow![Disk !IDX!]!Reset!  !White!!MODEL!!Reset!  !Green!(!SIZE_GB! GB)!Reset!"
+        if "!DISK_COUNT!"=="1" set "DISK_LINE_1=!LINE_CONTENT!"
+        if "!DISK_COUNT!"=="2" set "DISK_LINE_2=!LINE_CONTENT!"
+        if "!DISK_COUNT!"=="3" set "DISK_LINE_3=!LINE_CONTENT!"
     )
-
-    set "LINE_CONTENT=!Bold!!Yellow![Disk !IDX!]!Reset!  !White!!MODEL!!Reset!  !Green!(!SIZE_GB! GB)!Reset!"
-
-    if "!DISK_COUNT!"=="1" set "DISK_LINE_1=!LINE_CONTENT!"
-    if "!DISK_COUNT!"=="2" set "DISK_LINE_2=!LINE_CONTENT!"
-    if "!DISK_COUNT!"=="3" set "DISK_LINE_3=!LINE_CONTENT!"
+) else (
+    for /f "tokens=1,2,3 delims=|" %%A in ('powershell -NoProfile -Command "Get-CimInstance Win32_DiskDrive | Sort-Object Index | ForEach-Object { $_.Index.ToString() + '|' + $_.Model + '|' + [math]::Round($_.Size/1GB) }"') do (
+        set /a DISK_COUNT+=1
+        set "IDX=%%A"
+        set "MODEL=%%B"
+        set "SIZE_GB=%%C"
+        set "LINE_CONTENT=!Bold!!Yellow![Disk !IDX!]!Reset!  !White!!MODEL!!Reset!  !Green!(!SIZE_GB! GB)!Reset!"
+        if "!DISK_COUNT!"=="1" set "DISK_LINE_1=!LINE_CONTENT!"
+        if "!DISK_COUNT!"=="2" set "DISK_LINE_2=!LINE_CONTENT!"
+        if "!DISK_COUNT!"=="3" set "DISK_LINE_3=!LINE_CONTENT!"
+    )
 )
 
 if !DISK_COUNT! GTR 3 (
     set /a REST_DISK=!DISK_COUNT!-2
     set "DISK_LINE_3=!Red!...and !REST_DISK! more disks found.!Reset!"
+)
+
+goto :EOF
 )
