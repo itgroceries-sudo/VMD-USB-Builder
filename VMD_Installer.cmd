@@ -109,10 +109,10 @@ echo    !Bold![ S  ]  !Cyan!Shutdown!Reset!
 echo    !Bold![ X  ]  !Green!Exit Script!Reset!
 
 if "!WIN_FOUND!"=="1" echo    !Bold![ B  ]  !Red!Go to Firmware/BIOS !White!(GO2BIOS)!Reset!
-if "!WIN_FOUND!"=="1" ping 127.0.0.1 -n 5 >nul
 if "!WIN_FOUND!"=="1" (
     if not defined ALREADY_ASKED (
         set "ALREADY_ASKED=1"
+        ping 127.0.0.1 -n 5 >nul
         echo Set WshShell = CreateObject^("WScript.Shell"^) > "%TEMP%\AskExit.vbs"
         echo Res = MsgBox^("Windows Found^! (!TARGET_OS_DRIVE!\Windows) Install Complete." ^& vbCrLf ^& "Do you want to EXIT?", 36, "IT Groceries Shop"^) >> "%TEMP%\AskExit.vbs"
         echo WScript.Quit Res >> "%TEMP%\AskExit.vbs"
@@ -122,7 +122,7 @@ if "!WIN_FOUND!"=="1" (
         if "!USER_CHOICE!"=="6" (
             cls
             echo. & echo    Exiting...
-            timeout /t 1 >nul
+            ping 127.0.0.1 -n 2 >nul
             exit
         )
     )
