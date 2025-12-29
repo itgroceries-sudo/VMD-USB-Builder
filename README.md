@@ -38,7 +38,7 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 **✨ Key Features:**
 * **🔍 Auto-Launch:** Triggered via `Autounattend.xml` before Windows Setup begins.
 * **🛡️ Hardware Detection:** Scans the target machine to identify the VMD Controller.
-* **💉 On-the-Fly Injection:** Uses `DISM` to inject the VMD driver into WinPE memory instantly.
+* **💉 On-the-Fly Injection:** Uses `drvload` to inject the VMD driver into WinPE memory instantly.
 * **👀 Instant Visibility:** Your NVMe drives appear immediately after injection.
 * **🛑 Rescue Mode:** If an old Windows OS is found, offers a "Go to BIOS" shortcut.
 
