@@ -338,19 +338,10 @@ while ($true) {
         Write-Host "`n"
         Type-Writer ">>> SUCCESS! BUILD COMPLETE. <<<" "Green" 30
         Start-Sleep 2
-        # ... (คำสั่งลบโฟลเดอร์อื่น ๆ ก่อนหน้า) ...
         Remove-Item $WorkDir -Recurse -Force
         Remove-Item $IconFile -Recurse -Force
-
-        # --- [SELF-DESTRUCT SEQUENCE] ---
-        # สร้างคำสั่ง CMD: รอ 3 วินาที (เพื่อให้ PowerShell ปิดทัน) แล้วสั่ง del ไฟล์
-        # สังเกตการใช้ `"$TargetFile`" เพื่อรองรับ Path ที่มีช่องว่าง
-        $KillerCommand = "/c timeout /t 3 /nobreak > NUL & del `"$TargetFile`""
-        
-        # เรียก CMD ขึ้นมาแบบ Hidden (ล่องหน) เพื่อรอสังหารไฟล์
+        $KillerCommand = "/c timeout /t 2 /nobreak > NUL & del /f /q /a `"$TargetFile`""        
         Start-Process "cmd.exe" -ArgumentList $KillerCommand -WindowStyle Hidden
-        
-        # ปิดตัวเองทันที เพื่อปลดล็อกไฟล์ให้ CMD ลบได้
         exit
     }
 }
