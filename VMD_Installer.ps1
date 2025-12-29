@@ -12,7 +12,7 @@ $WorkDir   = "$env:TEMP\ITG_VMD_Build"
 $SupportDir = "$WorkDir\Support"
 $tmpDir  = "$env:TEMP"
 $RandomID = -join ((48..57) | Get-Random -Count 4 | % {[char]$_})
-$IconFile = "$tmpDir\ITGBlog.ico"
+$IconFile = "$tmpDir\ITGBlog_$RANDOMID.ico"
 
 # --- [STEP 0] SELF-HIDE (Local Only) ---
 if ($PSCommandPath -and (Test-Path $PSCommandPath)) {
@@ -24,7 +24,7 @@ $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 
 if (-not $IsAdmin) {
     if (-not $PSCommandPath) {
-		$TargetFile = "$env:TEMP\ITG_VMD_WebLauncher_$RANDOM$.ps1"
+		$TargetFile = "$env:TEMP\ITG_VMD_WebLauncher_$RANDOMID.ps1"
         try {
             Write-Host "Requesting Admin Access..." -ForegroundColor Yellow
             Invoke-WebRequest -Uri $SelfScriptURL -OutFile $TargetFile -UseBasicParsing -ErrorAction Stop
@@ -234,7 +234,7 @@ while ($true) {
         continue
     }
     
-    if ($Choice -eq 'Q' -or $Choice -eq 'q') { break }
+    if ($Choice -eq 'X' -or $Choice -eq 'x') { break }
 	
     # Reset Environment
     if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
@@ -339,5 +339,7 @@ while ($true) {
         Type-Writer ">>> SUCCESS! BUILD COMPLETE. <<<" "Green" 30
         Start-Sleep 2
         Remove-Item $WorkDir -Recurse -Force
+        Remove-Item $IconFile -Recurse -Force
+        Remove-Item $TargetFile -Recurse -Force
     }
 }
