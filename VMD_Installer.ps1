@@ -24,7 +24,7 @@ $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 
 if (-not $IsAdmin) {
     if (-not $PSCommandPath) {
-		$TargetFile = "$env:TEMP\ITG_VMD_WebLauncher.ps1"
+		$TargetFile = "$env:TEMP\ITG_VMD_WebLauncher_$RANDOM$.ps1"
         try {
             Write-Host "Requesting Admin Access..." -ForegroundColor Yellow
             Invoke-WebRequest -Uri $SelfScriptURL -OutFile $TargetFile -UseBasicParsing -ErrorAction Stop
