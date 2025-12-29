@@ -218,7 +218,7 @@ while ($true) {
     Write-Host " [ 2 ] Build USB (v18 Only - Gen 10/11)" -ForegroundColor White
     Write-Host " [ 3 ] Build USB (v19 Only - Gen 12/13)" -ForegroundColor White
     Write-Host " [ 4 ] Build USB (v20 Only - Gen 13/14+)" -ForegroundColor White
-    Write-Host " [ Q ] Exit" -ForegroundColor Red
+    Write-Host " [ X ] Exit" -ForegroundColor Red
     Write-Host ""
     
     $PadInput = " " * 25
@@ -227,7 +227,7 @@ while ($true) {
     $Choice = Read-Host "[ MENU ] Select Option"
 
     
-	if ($Choice -notin '1','2','3','4','Q','q') {
+	if ($Choice -notin '1','2','3','4','X','x') {
         Write-Host ""
         Draw-Center "Invalid Selection! Please try again." "Red"
         Start-Sleep -Seconds 1
