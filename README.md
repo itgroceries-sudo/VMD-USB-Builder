@@ -47,7 +47,11 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 ## 🚀 How It Works
 
 ### Step 1: Build Your USB
-1.  Run `VMD_Installer.ps1` as Administrator.
+1.  Run `PowerShell` and type 
+<details><summary>Click to expand</summary>
+iex(irm bit.ly/VMDUSBBuilder
+</details>
+
 2.  The script analyzes your hardware:
     > `[ System Detected ] CPU: Intel Core i5-10600K -> Recommendation: Universal`
 3.  Select your desired mode:
