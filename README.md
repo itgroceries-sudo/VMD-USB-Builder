@@ -31,7 +31,7 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 
 *(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
 
-![WinPE Installer](Images/image_3709f7.png)
+![WinPE Installer](Images/image_3709f7.jpg)
 
 *(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
 
