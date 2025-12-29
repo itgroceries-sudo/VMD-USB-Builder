@@ -31,6 +31,10 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 
 *(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
 
+![WinPE Installer UI](v17.0.png)
+
+*(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
+
 **✨ Key Features:**
 * **🔍 Auto-Launch:** Triggered via `Autounattend.xml` before Windows Setup begins.
 * **🛡️ Hardware Detection:** Scans the target machine to identify the VMD Controller.
