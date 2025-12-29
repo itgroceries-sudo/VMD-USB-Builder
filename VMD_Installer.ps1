@@ -1,5 +1,5 @@
 # =========================================================
-#  IT Groceries Shop Launcher (v8.1 - VMD Edition)
+#   IT Groceries Shop Launcher (v8.2 - Intel EXE Edition)
 # =========================================================
 param([switch]$IsLegacyMode)
 $ErrorActionPreference = 'SilentlyContinue'
@@ -43,7 +43,7 @@ if (-not $IsAdmin) {
 
 # --- [STEP 2] VISUAL HELPERS ---
 $Host.UI.RawUI.WindowTitle = "VMD USB Builder by IT Groceries Shop"
-try { mode con: cols=85 lines=25 } catch {}
+try { mode con: cols=90 lines=25 } catch {}
 
 # 2.1 Window & Icon
 try {
@@ -68,6 +68,10 @@ try {
     }
 } catch {}
 
+# --- [INTEL EXE DOWNLOAD LINKS] ---
+$URL_V18 = "https://downloadmirror.intel.com/773229/SetupRST.exe"
+$URL_V19 = "https://downloadmirror.intel.com/849934/SetupRST.exe"
+$URL_V20 = "https://downloadmirror.intel.com/865363/SetupRST.exe"
 
 # 2.2 Draw Center
 function Draw-Center {
@@ -112,7 +116,7 @@ function Show-Spinner {
     Write-Host ""
 }
 
-# --- [STEP 3] VMD LOGIC START ---
+# --- [STEP 3] VMD LOGIC START 
 
 function Get-HardwareInfo {
     try {
@@ -167,6 +171,45 @@ function Get-And-Extract {
     }
 }
 
+function Get-And-Extract-IntelEXE {
+    param ($Url, $DestName)
+    $ExePath = "$WorkDir\$DestName.exe"
+    $ExtractPath = "$WorkDir\Temp_Extract_$DestName"
+
+    Show-Spinner "Downloading $DestName (SetupRST.exe) from Intel..." 5 "Yellow"
+    try {
+                Invoke-WebRequest -Uri $Url -OutFile $ExePath -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
+    } catch { 
+        Write-Host "    			 [!] Failed to download $DestName" -ForegroundColor Red
+        return 
+    }
+
+    if (Test-Path $ExePath) {
+        Type-Writer "    > Extracting Drivers from Intel EXE..." "DarkGray" 5
+        try {
+            $process = Start-Process -FilePath $ExePath -ArgumentList "-extractdrivers `"$ExtractPath`"" -Wait -PassThru -WindowStyle Hidden
+            $InfFile = Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStorVD.inf" | Select-Object -First 1
+            
+            if ($InfFile) {
+                $FinalDest = "$SupportDir\$DestName"
+                if (!(Test-Path $FinalDest)) { New-Item -ItemType Directory -Path $FinalDest | Out-Null }
+                Copy-Item -Path "$($InfFile.Directory.FullName)\*" -Destination $FinalDest -Recurse -Force
+				Write-Host "`n"
+                Write-Host "    			 [OK] $DestName ready." -ForegroundColor Green
+				Write-Host "`n"
+            } else {
+				Write-Host "`n"
+                Write-Host "    			 [!] iaStorVD.inf not found in extracted files." -ForegroundColor Red
+            }
+            Remove-Item $ExePath -Force
+            Remove-Item $ExtractPath -Recurse -Force
+        } catch {
+			Write-Host "`n"
+            Write-Host "    			 [!] Error during extraction: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+}
+
 # --- [STEP 4] MAIN LOOP ---
 while ($true) {
     Draw-MainUI
@@ -180,10 +223,19 @@ while ($true) {
     
     $PadInput = " " * 25
     Write-Host $PadInput -NoNewline
+	
     $Choice = Read-Host "[ MENU ] Select Option"
 
-    if ($Choice -eq 'Q') { break }
     
+	if ($Choice -notin '1','2','3','4','Q','q') {
+        Write-Host ""
+        Draw-Center "Invalid Selection! Please try again." "Red"
+        Start-Sleep -Seconds 1
+        continue
+    }
+    
+    if ($Choice -eq 'Q' -or $Choice -eq 'q') { break }
+	
     # Reset Environment
     if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
     New-Item -ItemType Directory -Path $SupportDir | Out-Null
@@ -198,11 +250,16 @@ while ($true) {
 
     # 2. Download Drivers
     Write-Host ""
+
     switch ($Choice) {
-        '1' { Get-And-Extract "VMD_v18.exe" "VMD_v18"; Get-And-Extract "VMD_v19.exe" "VMD_v19"; Get-And-Extract "VMD_v20.exe" "VMD_v20" }
-        '2' { Get-And-Extract "VMD_v18.exe" "VMD_v18" }
-        '3' { Get-And-Extract "VMD_v19.exe" "VMD_v19" }
-        '4' { Get-And-Extract "VMD_v20.exe" "VMD_v20" }
+        '1' { 
+            Get-And-Extract-IntelEXE $URL_V18 "VMD_v18"
+            Get-And-Extract-IntelEXE $URL_V19 "VMD_v19"
+            Get-And-Extract-IntelEXE $URL_V20 "VMD_v20"
+        }
+        '2' { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
+        '3' { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
+        '4' { Get-And-Extract-IntelEXE $URL_V20 "VMD_v20" }
     }
 
     # --- [NEW FEATURE: DELAY & USB SELECTION] ---
