@@ -27,13 +27,20 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 ### 🔧 Phase 2: The Injector (WinPE)
 *Runs automatically when you boot the USB on the target PC.*
 
-![WinPE Installer UI](Images/image_363ee8.png)
-
-*(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
-
-![WinPE Installer](Images/image_3709f7.jpg)
-
-*(Screenshot: The Script running inside Windows Setup, ready to inject drivers)*
+<table border="0">
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <img src="Images/image_363ee8.png" alt="WinPE Installer UI" width="95%" />
+      <br />
+      <em>(Screenshot: The Script running inside Windows Setup, ready to inject drivers)</em>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <img src="Images/image_3709f7.jpg" alt="WinPE Installer Action" width="95%" />
+      <br />
+      <em>(Screenshot: The Script running inside Windows Setup, ready to inject drivers)</em>
+    </td>
+  </tr>
+</table>
 
 **✨ Key Features:**
 * **🔍 Auto-Launch:** Triggered via `Autounattend.xml` before Windows Setup begins.
