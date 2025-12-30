@@ -77,8 +77,12 @@ echo    !Magenta!!Bold!IRST Universal Driver Installer !CURRENT_VER! Stable!Rese
 echo                 !Cyan!VMD Driver Installer by IT Groceries Shop!Reset!
 echo !Bold!!White!================================================================================!Reset!
 echo.
-Call :PREPARE_DISK_INFO 
-echo  !Bold!!Yellow!Detected Storage:!Green! OS: !Red!!TARGET_OS_DRIVE!\Windows!Reset!
+Call :PREPARE_DISK_INFO
+if defined TARGET_OS_DRIVE (
+    echo   !Bold!!Yellow!Detected Storage:!Green! OS: !Red!!TARGET_OS_DRIVE!\Windows!Reset!
+) else (
+    echo   !Bold!!Yellow!Detected Storage:!Red! No Windows OS Found!Reset!
+)
 echo    !White!!DISK_LINE_1!!Reset!
 echo    !White!!DISK_LINE_2!!Reset!
 echo    !White!!DISK_LINE_3!!Reset!
@@ -222,9 +226,8 @@ if Exist X:\Windows\ (
     powershell -Command "$diskinfo = Get-PhysicalDisk | Select-Object DeviceId, Model, @{Name='Size (GB)'; Expression={[math]::Round($_.Size / 1GB)}} | Format-Table -AutoSize | Out-String -Width 78; $diskinfo.Trim().Split([System.Environment]::NewLine) | Where-Object { $_ -ne '' }"
 )
 echo.
-echo !Green! WIN_FOUND : !WIN_STATUS!
 echo Press any key to return to menu...
-pause >nul
+ping 127.0.0.1 -n 4 >nul
 EXIT /B
  
 :: -----------------------------------------------------------------------------
