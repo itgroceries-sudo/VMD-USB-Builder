@@ -323,20 +323,27 @@ set "DISK_LINE_1=!Red!No Disk Found!Reset!"
 set "DISK_LINE_2="
 set "DISK_LINE_3="
 set "DISK_COUNT=0"
+
 if exist "X:\Windows\" ( 
-    for /f "tokens=2,3,4 delims=," %%A in ('wmic diskdrive get Index^,Model^,Size /format:csv ^| findstr [0-9]') do (
-        set /a DISK_COUNT+=1
-        set "IDX=%%A"
-        set "MODEL=%%B"
-        set "RSIZE=%%C"
-        for /f "delims=" %%D in ("!RSIZE!") do set "RSIZE=%%D"
-        if defined RSIZE (
-            if "!RSIZE:~9!"=="" ( set "SIZE_GB=0" ) else ( set "SIZE_GB=!RSIZE:~0,-9!" )
-        ) else ( set "SIZE_GB=0" )
-        set "LINE_CONTENT=!Bold!!Yellow![Disk !IDX!]!Reset!  !White!!MODEL!!Reset!  !Green!(!SIZE_GB! GB)!Reset!"
-        if "!DISK_COUNT!"=="1" set "DISK_LINE_1=!LINE_CONTENT!"
-        if "!DISK_COUNT!"=="2" set "DISK_LINE_2=!LINE_CONTENT!"
-        if "!DISK_COUNT!"=="3" set "DISK_LINE_3=!LINE_CONTENT!"
+    for /f "tokens=2,3,4 delims=," %%A in ('wmic diskdrive get Index^,Model^,Size /format:csv') do (
+        if /i "%%A" neq "Index" if "%%A" neq "" (
+            set /a DISK_COUNT+=1
+            set "IDX=%%A"
+            set "MODEL=%%B"
+            set "RSIZE=%%C"
+            
+            for /f "delims=" %%D in ("!RSIZE!") do set "RSIZE=%%D"
+            
+            if defined RSIZE (
+                if "!RSIZE:~9!"=="" ( set "SIZE_GB=0" ) else ( set "SIZE_GB=!RSIZE:~0,-9!" )
+            ) else ( set "SIZE_GB=0" )
+            
+            set "LINE_CONTENT=!Bold!!Yellow![Disk !IDX!]!Reset!  !White!!MODEL!!Reset!  !Green!(!SIZE_GB! GB)!Reset!"
+            
+            if "!DISK_COUNT!"=="1" set "DISK_LINE_1=!LINE_CONTENT!"
+            if "!DISK_COUNT!"=="2" set "DISK_LINE_2=!LINE_CONTENT!"
+            if "!DISK_COUNT!"=="3" set "DISK_LINE_3=!LINE_CONTENT!"
+        )
     )
 ) else (
     for /f "tokens=1,2,3 delims=|" %%A in ('powershell -NoProfile -Command "Get-CimInstance Win32_DiskDrive | Sort-Object Index | ForEach-Object { $_.Index.ToString() + '|' + $_.Model + '|' + [math]::Round($_.Size/1GB) }"') do (
