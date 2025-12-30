@@ -15,15 +15,11 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 *Runs on your working PC to prepare the USB.*
 
 <details><summary>Click to expand *(See more)*</summary>
-<table border="0">
-  <tr>
     <td width="50%" align="center" valign="top">
       <img src="Images/image_363b6a.png" alt="VMD USB Builder" width="95%" />
       <br />
       <em>(Screenshot: PowerShell script used to automate the process of creating a bootable USB drive.)</em>
     </td>
-  </tr>
-</table>
 </details>
 
 *(Screenshot: The Builder detecting CPU and recommending the correct driver version)*
@@ -110,3 +106,13 @@ Developed with ❤️ by **IT Groceries Shop**.
 * *Driver Source:* Intel Corporation
 
 ---
+
+## 🚀 Original Source
+<details>
+  <summary>Click to watch video YouTube</summary>
+
+  [![YouTube Video](https://img.youtube.com/vi/Il1kgIVKE3U/sddefault.jpg)](https://www.youtube.com/watch?v=Il1kgIVKE3U  "แจกไฟล์ RST / VMD / AHCI แก้ปัญหาลง Windows แล้วมองไม่เห็น SSD/NVMe 4⃣🅺/|💻🅸🆃🅶🆁🅾🅲🅴🆁🅸🅴🆂™")
+</details>
+
+---
+
