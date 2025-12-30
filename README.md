@@ -15,7 +15,15 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 *Runs on your working PC to prepare the USB.*
 
 <details><summary>Click to expand *(See more)*</summary>
-![VMD Builder UI](Images/image_363b6a.png)
+<table border="0">
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <img src="Images/image_363b6a.png" alt="VMD USB Builder" width="95%" />
+      <br />
+      <em>(Screenshot: PowerShell script used to automate the process of creating a bootable USB drive.)</em>
+    </td>
+  </tr>
+</table>
 </details>
 
 *(Screenshot: The Builder detecting CPU and recommending the correct driver version)*
