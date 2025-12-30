@@ -65,7 +65,10 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 ### Step 1: Build Your USB
 1.  Run `PowerShell` and type 
 <details><summary>Click to expand</summary>
-iex(irm bit.ly/VMDUSBBuilder)
+
+```powershell
+iex (irm bit.ly/VMDUSBBuilder)
+```
 </details>
 
 2.  The script analyzes your hardware:
