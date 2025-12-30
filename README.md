@@ -14,7 +14,9 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 ### 🛠 Phase 1: The Smart Builder (PowerShell)
 *Runs on your working PC to prepare the USB.*
 
+<details><summary>Click to expand *(See more)*</summary>
 ![VMD Builder UI](Images/image_363b6a.png)
+</details>
 
 *(Screenshot: The Builder detecting CPU and recommending the correct driver version)*
 
@@ -27,6 +29,7 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 ### 🔧 Phase 2: The Injector (WinPE)
 *Runs automatically when you boot the USB on the target PC.*
 
+<details><summary>Click to expand *(See more)*</summary>
 <table border="0">
   <tr>
     <td width="50%" align="center" valign="top">
@@ -41,6 +44,8 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
     </td>
   </tr>
 </table>
+</details>
+
 
 **✨ Key Features:**
 * **🔍 Auto-Launch:** Triggered via `Autounattend.xml` before Windows Setup begins.
