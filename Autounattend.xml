@@ -11,7 +11,7 @@
             <RunSynchronous>
                 <RunSynchronousCommand wcm:action="add">
                     <Order>1</Order>
-                    <Path>cmd.exe /c for %d in (C D E F G H I J K L M N O P Q R S T U V W Y) do if exist %d:\Support\VMD_Installation.cmd Call %d:\Support\VMD_Installation.cmd</Path>
+                    <Path>cmd.exe /c for %d in (C D E F G H I J K L M N O P Q R S T U V W Y) do if exist %d:\Support\VMD_Installer.cmd Call %d:\Support\VMD_Installer.cmd</Path>
                     <Description>Run VMD Driver Installer</Description>
                 </RunSynchronousCommand>
             </RunSynchronous>
