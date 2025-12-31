@@ -39,24 +39,37 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
     <td width="50%" align="center" valign="top">
       <img src="Images/image_363ee8.png" alt="WinPE Installer UI" width="95%" />
       <br />
-      <em>(Screenshot: The Script running inside Windows Setup, ready to inject drivers)</em>
+      <em>(Screenshot: The Script running inside Windows Setup)</em>
     </td>
     <td width="50%" align="center" valign="top">
       <img src="Images/image_3709f7.jpg" alt="WinPE Installer Action" width="95%" />
       <br />
-      <em>(Screenshot: The Script running inside Windows Setup, ready to inject drivers)</em>
+      <em>(Screenshot: Injection in progress)</em>
     </td>
   </tr>
 </table>
 </details>
 
+**✨ Intelligent Workflow:**
 
-**✨ Key Features:**
-* **🔍 Auto-Launch:** Triggered via `Autounattend.xml` before Windows Setup begins.
-* **🛡️ Hardware Detection:** Scans the target machine to identify the VMD Controller.
-* **💉 On-the-Fly Injection:** Uses `drvload` to inject the VMD driver into WinPE memory instantly.
-* **👀 Instant Visibility:** Your NVMe drives appear immediately after injection.
-* **🛑 Rescue Mode:** If an old Windows OS is found, offers a "Go to BIOS" shortcut.
+1.  **⚡ Auto-Launch via XML:**
+    * Upon booting the USB, the `VMD_Installer.cmd` launches **automatically** (triggered by `Autounattend.xml`). No need to press Shift+F10 or type commands.
+
+2.  **💿 Instant OS Detection:**
+    * If you see **"Detected Storage: OS: [Drive]:\Windows"** appear in green immediately, it means your storage is **already visible**!
+    * *Insight:* This indicates VMD drivers might not be needed, or the drive is already recognized.
+
+3.  **🧠 Smart Hardware Matching (HWID):**
+    * The system scans your **Hardware ID (HWID)** and explicitly tells you which generation you are running (e.g., *Intel 11th Gen Tiger Lake*).
+    * Simply press the matching number on your keyboard: `[18]`, `[19]`, or `[20]`.
+
+4.  **🔄 Post-Injection Rescan & Popup:**
+    * After loading a driver, the system performs a deep rescan for operating systems.
+    * If a Windows installation is successfully detected, a **VBScript Popup** will appear asking: *"Windows Found! Do you want to EXIT?"* (Yes/No).
+
+5.  **🆘 Context-Aware Rescue Menu [ B ]:**
+    * The **[ B ] Go to Firmware/BIOS** option is **hidden by default**.
+    * It only appears if the system successfully detects an existing Windows installation (`Detected Storage: OS...`), giving you a quick way to reboot into BIOS if needed.
 
 ---
 
