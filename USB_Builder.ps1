@@ -1,0 +1,290 @@
+# =========================================================
+#  VMD USB Builder by IT Groceries Shop (v16.1 GitHub)
+# =========================================================
+$ErrorActionPreference = 'Stop'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# --- [ADMIN CHECK] ---
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
+
+# --- [WIN32 API IMPORTS] ---
+$Win32 = Add-Type -MemberDefinition @"
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+    [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
+    [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
+"@ -Name "Win32Utils" -Namespace Win32 -PassThru
+
+# --- [CONFIG] ---
+$GitLabRaw   = "https://gitlab.com/itgroceries/itg_vmd_builder/-/raw/main"
+$WorkDir     = "$env:TEMP\ITG_VMD_Build"
+$SupportDir  = "$WorkDir\Support"
+
+# [ICONS]
+$IconGoogle  = "$env:TEMP\Google.ico"
+$IconITG     = "$env:TEMP\ITG.ico"
+$UrlGoogle   = "https://www.google.com/favicon.ico"
+$UrlITG      = "https://itgroceries.blogspot.com/favicon.ico"
+
+# [INTEL DRIVERS]
+$URL_V18 = "https://downloadmirror.intel.com/773229/SetupRST.exe"
+$URL_V19 = "https://downloadmirror.intel.com/849934/SetupRST.exe"
+$URL_V20 = "https://downloadmirror.intel.com/865363/SetupRST.exe"
+
+# --- [PREPARATION] ---
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+
+# 1. Download Icons
+try {
+    Invoke-WebRequest -Uri $UrlGoogle -OutFile $IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction SilentlyContinue
+    Invoke-WebRequest -Uri $UrlITG -OutFile $IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction SilentlyContinue
+} catch {}
+
+# 2. Console Setup (Left)
+$ConsoleHandle = $Win32::GetConsoleWindow()
+$ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
+$ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
+$WinWidth = 650
+$WinHeight = 700
+
+$LeftX = ($ScreenWidth / 2) - $WinWidth
+$RightX = ($ScreenWidth / 2)
+$CenterY = ($ScreenHeight / 2) - ($WinHeight / 2)
+
+if (Test-Path $IconGoogle) {
+    $hIcon = $Win32::LoadImage([IntPtr]::Zero, $IconGoogle, 1, 0, 0, 0x10)
+    if ($hIcon -ne [IntPtr]::Zero) {
+        [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0, $hIcon)
+        [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1, $hIcon)
+    }
+}
+
+[void]$Win32::SetWindowPos($ConsoleHandle, [IntPtr]::Zero, $LeftX, $CenterY, $WinWidth, $WinHeight, 0x0040)
+
+# Console UI
+Clear-Host
+$Host.UI.RawUI.BackgroundColor = "Black"
+$Host.UI.RawUI.ForegroundColor = "Green"
+Clear-Host
+Write-Host "`n`n`n"
+Write-Host "      ==================================================" -ForegroundColor Cyan
+Write-Host "                 IT GROCERIES SHOP CONSOLE              " -ForegroundColor White
+Write-Host "      ==================================================" -ForegroundColor Cyan
+Write-Host "`n"
+Write-Host "      [ SYSTEM STATUS ]" -ForegroundColor Yellow
+Write-Host "      > Initializing modules..."
+Write-Host "      > Loading WinForms GUI..."
+Write-Host "      > Preparing Network Connection..."
+Write-Host "`n"
+Write-Host "      WAITING FOR USER INPUT..." -ForegroundColor Gray
+
+# --- [WINFORM SETUP] ---
+$form = New-Object Windows.Forms.Form
+$form.Text = "VMD USB Builder by IT Groceries Shop"
+$form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
+$form.BackColor = [Drawing.Color]::Black
+$form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
+$form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
+$form.Location = New-Object Drawing.Point($RightX, $CenterY)
+$form.KeyPreview = $true
+
+if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
+
+$global:TargetUSB = $null
+
+$rnd = New-Object System.Random
+$AntiGravity = {
+    $this.Location = New-Object Drawing.Point(
+        ($this.Location.X + $rnd.Next(-12, 13)), 
+        ($this.Location.Y + $rnd.Next(-12, 13))
+    )
+}
+
+# --- [UI COMPONENTS] ---
+$lblHeader = New-Object Windows.Forms.Label
+$lblHeader.Text = "--- VMD USB BUILDER (Final) ---"
+$lblHeader.ForeColor = [Drawing.Color]::Cyan
+$lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
+$lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
+$lblHeader.Dock = [Windows.Forms.DockStyle]::Top
+$lblHeader.Height = 40
+$form.Controls.Add($lblHeader)
+
+$cmbUSB = New-Object Windows.Forms.ComboBox
+$cmbUSB.Width = 450
+$cmbUSB.Height = 40
+$cmbUSB.Location = New-Object Drawing.Point(90, 50)
+$cmbUSB.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
+$cmbUSB.BackColor = [Drawing.Color]::DimGray
+$cmbUSB.ForeColor = [Drawing.Color]::White
+$cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
+$form.Controls.Add($cmbUSB)
+
+$lblStatus = New-Object Windows.Forms.Label
+$lblStatus.Text = "Scanning for USB..."
+$lblStatus.ForeColor = [Drawing.Color]::Yellow
+$lblStatus.Font = New-Object Drawing.Font("Consolas", 10)
+$lblStatus.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
+$lblStatus.Location = New-Object Drawing.Point(0, 90)
+$lblStatus.Width = $WinWidth
+$form.Controls.Add($lblStatus)
+
+# --- [FUNCTIONS] ---
+
+function Update-Console {
+    param($Msg, $Color="White")
+    Write-Host "      > $Msg" -ForegroundColor $Color
+}
+
+function Refresh-USB-List {
+    $drives = Get-Volume | Where-Object {$_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null} | Sort-Object DriveLetter
+    
+    if ($cmbUSB.Items.Count -ne $drives.Count -or $cmbUSB.Items.Count -eq 0) {
+        $cmbUSB.Items.Clear()
+        if ($drives) {
+            foreach ($d in $drives) {
+                $SizeGB = [math]::Round($d.SizeRemaining / 1GB, 2)
+                $Label = if ($d.FriendlyName) { $d.FriendlyName } else { "USB Drive" }
+                [void]$cmbUSB.Items.Add("[$($d.DriveLetter):] $Label ($SizeGB GB Free)")
+            }
+            if ($cmbUSB.SelectedIndex -eq -1 -and $cmbUSB.Items.Count -gt 0) { $cmbUSB.SelectedIndex = 0 }
+        } else {
+            $cmbUSB.Items.Clear()
+            $cmbUSB.Text = "No USB Found"
+        }
+    }
+
+    if ($cmbUSB.SelectedIndex -ne -1) {
+        $txt = $cmbUSB.SelectedItem.ToString()
+        $driveLetter = $txt.Substring(1, 2)
+        $global:TargetUSB = $driveLetter + "\"
+        $lblStatus.Text = "Target Ready: $global:TargetUSB"
+        $lblStatus.ForeColor = [Drawing.Color]::Lime
+    } else {
+        $global:TargetUSB = $null
+        $lblStatus.Text = "Please insert USB Drive..."
+        $lblStatus.ForeColor = [Drawing.Color]::Red
+    }
+}
+
+function GoTo-BIOS {
+    $result = [Windows.Forms.MessageBox]::Show("System will restart to BIOS/Firmware. Continue?", "GO2BIOS", "YesNo", "Question")
+    if ($result -eq "Yes") { Start-Process "shutdown.exe" -ArgumentList "/r /fw /t 0" -NoNewWindow }
+}
+
+function Get-And-Extract-IntelEXE {
+    param ($Url, $DestName)
+    $ExePath = "$WorkDir\$DestName.exe"
+    $ExtractPath = "$WorkDir\Temp_Extract_$DestName"
+
+    Update-Console "Downloading $DestName..." "Cyan"
+    try { Invoke-WebRequest -Uri $Url -OutFile $ExePath -UserAgent "Mozilla/5.0" -UseBasicParsing } catch { Update-Console "Download Failed!" "Red"; return }
+
+    if (Test-Path $ExePath) {
+        Update-Console "Extracting drivers..." "Gray"
+        try {
+            $process = Start-Process -FilePath $ExePath -ArgumentList "-extractdrivers `"$ExtractPath`"" -Wait -PassThru -WindowStyle Hidden
+            $InfFile = Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStorVD.inf" | Select-Object -First 1
+            if ($InfFile) {
+                $FinalDest = "$SupportDir\$DestName"
+                if (!(Test-Path $FinalDest)) { New-Item -ItemType Directory -Path $FinalDest | Out-Null }
+                Copy-Item -Path "$($InfFile.Directory.FullName)\*" -Destination $FinalDest -Recurse -Force
+                Update-Console "SUCCESS: $DestName Ready." "Green"
+            } else { Update-Console "iaStorVD.inf NOT FOUND." "Red" }
+            Remove-Item $ExePath -Force -ErrorAction SilentlyContinue
+            Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
+        } catch { Update-Console "Extraction Error." "Red" }
+    }
+}
+
+function Build-VMD-Process {
+    param($Mode)
+    
+    if ($global:TargetUSB -eq $null) {
+        [Windows.Forms.MessageBox]::Show("Please select a USB Drive first!", "Error", "OK", "Error")
+        return
+    }
+
+    Update-Console "--- STARTED BUILD PROCESS ---" "Yellow"
+
+    if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
+    New-Item -ItemType Directory -Path $SupportDir -Force | Out-Null
+    
+    Update-Console "Syncing GitLab Files..." "White"
+    try {
+        Invoke-WebRequest -Uri "$GitLabRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing
+        Invoke-WebRequest -Uri "$GitLabRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing
+    } catch { [Windows.Forms.MessageBox]::Show("GitLab Sync Failed.", "Error"); return }
+
+    if ($Mode -eq 1 -or $Mode -eq 2) { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
+    if ($Mode -eq 1 -or $Mode -eq 3) { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
+    if ($Mode -eq 1 -or $Mode -eq 4) { Get-And-Extract-IntelEXE $URL_V20 "VMD_v20" }
+
+    if ((Get-ChildItem $SupportDir -Directory).Count -gt 0) {
+        Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
+        Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+        Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+        Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
+        Update-Console "--- JOB COMPLETE ---" "Green"
+        [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "IT Groceries Shop")
+    } else {
+        Update-Console "FAILED: No drivers found." "Red"
+        [Windows.Forms.MessageBox]::Show("Extraction Failed: No drivers found.", "Error")
+    }
+}
+
+# --- [BUTTONS] ---
+function Add-Btn {
+    param($Txt, $Y, $Color, $M, $IsBIOS=$false)
+    $b = New-Object Windows.Forms.Button
+    $b.Text = $Txt; $b.Size = New-Object Drawing.Size(450, 50); $b.Location = New-Object Drawing.Point(90, $Y); $b.ForeColor = [Drawing.Color]::$Color
+    $b.FlatStyle = [Windows.Forms.FlatStyle]::Flat
+    $b.Font = New-Object Drawing.Font("Consolas", 10, [Drawing.FontStyle]::Bold)
+    $b.Tag = $M
+    $b.Add_MouseEnter($AntiGravity)
+    if ($IsBIOS) { $b.Add_Click({ GoTo-BIOS }) } else { $b.Add_Click({ Build-VMD-Process -Mode $this.Tag }) }
+    $form.Controls.Add($b)
+}
+
+# [FIX] Change Button 1 to Magenta
+Add-Btn "[ 1 ] Build USB (All VMDs)" 130 "Magenta" 1
+Add-Btn "[ 2 ] Build USB (v18 Only)" 200 "Yellow" 2
+Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
+Add-Btn "[ 4 ] Build USB (v20 Only)" 340 "Yellow" 4
+Add-Btn "[ B ] Go to Firmware/BIOS" 430 "Red" "BIOS" $true
+
+$btnX = New-Object Windows.Forms.Button
+$btnX.Text = "[ X ] Exit"; $btnX.Size = New-Object Drawing.Size(150, 45); $btnX.Location = New-Object Drawing.Point(240, 510); $btnX.ForeColor = [Drawing.Color]::Red
+$btnX.FlatStyle = [Windows.Forms.FlatStyle]::Flat
+$btnX.Font = New-Object Drawing.Font("Consolas", 10, [Drawing.FontStyle]::Bold)
+$btnX.Add_MouseEnter($AntiGravity)
+$btnX.Add_Click({ $form.Close() })
+$form.Controls.Add($btnX)
+
+# --- [EVENTS] ---
+$form.Add_KeyDown({
+    if ($_.KeyCode -eq 'D1' -or $_.KeyCode -eq 'NumPad1') { Build-VMD-Process -Mode 1 }
+    if ($_.KeyCode -eq 'D2' -or $_.KeyCode -eq 'NumPad2') { Build-VMD-Process -Mode 2 }
+    if ($_.KeyCode -eq 'D3' -or $_.KeyCode -eq 'NumPad3') { Build-VMD-Process -Mode 3 }
+    if ($_.KeyCode -eq 'D4' -or $_.KeyCode -eq 'NumPad4') { Build-VMD-Process -Mode 4 }
+    if ($_.KeyCode -eq 'B') { GoTo-BIOS }
+    if ($_.KeyCode -eq 'X') { $form.Close() }
+})
+
+$timer = New-Object Windows.Forms.Timer
+$timer.Interval = 2000
+$timer.Add_Tick({ Refresh-USB-List })
+$timer.Start()
+
+Refresh-USB-List
+
+$footer = New-Object Windows.Forms.Label
+$footer.Text = "Powered by IT Groceries Shop && my Teams"
+$footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
+$form.Controls.Add($footer)
+
+[void]$form.ShowDialog()
