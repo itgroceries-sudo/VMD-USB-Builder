@@ -1,7 +1,5 @@
-<#
-.SYNOPSIS
-    Web Launcher for Win10-SetupDisk
-    Downloads and runs Setup.cmd from GitHub
+<# : hybrid batch + powershell script
+@powershell -noprofile -Window Hidden -c "$param='%*';$ScriptPath='%~f0';iex((Get-Content('%~f0') -Raw))"&exit/b
 #>
 
 # =========================================================
@@ -303,6 +301,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
