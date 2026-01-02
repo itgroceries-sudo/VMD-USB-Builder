@@ -91,7 +91,7 @@ Write-Host "      > Waiting for user input..." -ForegroundColor Gray
 
 # WinForm Setup
 $form = New-Object Windows.Forms.Form
-$form.Text = "VMD USB Builder by IT Groceries Shop [$DateStr]"
+$form.Text = "VMD USB Builder by IT Groceries Shop"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
@@ -160,7 +160,6 @@ function Open-Target {
 }
 
 function GoTo-BIOS {
-    # [FIX] เพิ่ม Try/Catch ป้องกัน Error 203 ถ้าเข้า BIOS ไม่ได้จะ Restart ปกติแทน
     if ([Windows.Forms.MessageBox]::Show("Restart to BIOS?", "GO2BIOS", "YesNo") -eq "Yes") {
         try {
             Start-Process "shutdown.exe" -ArgumentList "/r /fw /t 0" -NoNewWindow -ErrorAction Stop
@@ -171,7 +170,7 @@ function GoTo-BIOS {
 }
 
 function Close-App {
-    $script:Running = $false # สั่งหยุด Loop
+    $script:Running = $false
     try { $timer.Stop() } catch {}
     $form.Close()
     [System.Environment]::Exit(0)
@@ -222,14 +221,13 @@ function Build-VMD-Process {
             if ($global:TargetUSB -eq $null) {
                  if ([Windows.Forms.MessageBox]::Show("Drivers are ready in Temp!`n`nInsert USB to copy?", "Ready", "YesNo", "Question") -eq "Yes") {
                      Update-Console "Waiting for USB insertion..." "Yellow"
-                     # [FIX] ใช้ตัวแปร $script:Running เพื่อให้กด Exit แล้วออกจาก Loop ได้
                      while ($global:TargetUSB -eq $null -and $script:Running) {
                          [System.Windows.Forms.Application]::DoEvents()
                          Refresh-USB-List
                          Start-Sleep -Milliseconds 500
                          if ($form.IsDisposed) { return }
                      }
-                     if (!$script:Running) { return } # ถ้ากด Exit ให้ออกเลย
+                     if (!$script:Running) { return }
                  } else {
                      Update-Console "Skipped USB Copy." "Yellow"
                      [Windows.Forms.MessageBox]::Show("Files are in Temp folder.`nClick 'Open Target' to view.", "Finished")
@@ -295,15 +293,9 @@ $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick
 Refresh-USB-List
 
 $footer = New-Object Windows.Forms.Label
-$footer.Text = "Powered by IT Groceries Shop && my Teams ([$DateStr])"
+$footer.Text = "Powered by IT Groceries Shop && my Teams (Latest Update: 3-1-2026)"
 $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
-
-
-
-
