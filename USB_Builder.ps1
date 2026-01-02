@@ -246,21 +246,23 @@ function Build-VMD-Process {
     # 4. Final Copy Stage
     if ((Get-ChildItem $SupportDir -Directory).Count -gt 0) {
         
-        # [CHANGE] Check for USB at the very end. If missing, prompt user.
+# [CHANGE] Check for USB at the very end.
         if ($global:TargetUSB -eq $null) {
-            Refresh-USB-List # Try to auto-detect one last time
+            Refresh-USB-List 
             if ($global:TargetUSB -eq $null) {
                  $ans = [Windows.Forms.MessageBox]::Show("Drivers are ready in Temp folder!`n`nDo you want to insert a USB drive now to copy files?", "Drivers Ready", "YesNo", "Question")
                  if ($ans -eq "Yes") {
-                     # Loop wait for USB
+                     
+                     Update-Console "Waiting for USB insertion..." "Yellow"
+                     
                      while ($global:TargetUSB -eq $null) {
+                         [System.Windows.Forms.Application]::DoEvents()
                          Refresh-USB-List
                          Start-Sleep -Milliseconds 500
-                         if ($global:TargetUSB -ne $null) { break }
-                         # Optional: Add a break condition or retry prompt here if needed, 
-                         # but for simplicity, we wait or user can kill app. 
-                         # Better UX: Ask 'Retry' inside loop, but this simple wait works for insertion.
+                         if ($form.IsDisposed) { return } 
                      }
+                     # -----------------------------------
+
                  } else {
                      Update-Console "Skipped USB Copy. Files are in $WorkDir" "Yellow"
                      [Windows.Forms.MessageBox]::Show("Files are extracted to:`n$WorkDir", "Finished (No USB)")
@@ -339,6 +341,7 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
+
 
 
 
