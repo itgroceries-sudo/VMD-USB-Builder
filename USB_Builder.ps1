@@ -249,7 +249,7 @@ function Add-Btn {
     $form.Controls.Add($b)
 }
 
-Add-Btn "[ 1 ] Build USB (All: v18, v19, v20)" 130 "Magenta" 1
+Add-Btn "[ 1 ] Build USB (All VMDs)" 130 "Magenta" 1
 Add-Btn "[ 2 ] Build USB (v18 Only)" 200 "Yellow" 2
 Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
 Add-Btn "[ 4 ] Build USB (v20 Only)" 340 "Yellow" 4
@@ -282,6 +282,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 [System.Environment]::Exit(0)
+
 
 
 
