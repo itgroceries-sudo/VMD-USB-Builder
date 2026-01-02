@@ -9,7 +9,7 @@ $CurrentScript = $PSCommandPath
 
 if (-not $CurrentScript) {
     $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1"
-    $TempScript = "$env:TEMP\VMD_Installer.ps1"
+    $TempScript = "$env:TEMP\USB_Builder.ps1"
     
     Write-Host "Downloading script to local machine..." -ForegroundColor Cyan
     try {
@@ -307,5 +307,6 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
+
 
 
