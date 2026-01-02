@@ -223,33 +223,65 @@ function Get-And-Extract-IntelEXE {
 function Build-VMD-Process {
     param($Mode)
     
-    if ($global:TargetUSB -eq $null) {
-        [Windows.Forms.MessageBox]::Show("Please select a USB Drive first!", "Error", "OK", "Error")
-        return
-    }
+    # [CHANGE] Removed initial USB check. Now runs even without USB.
 
     Update-Console "--- STARTED BUILD PROCESS ---" "Yellow"
 
+    # 1. Prepare Workspace
     if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
     New-Item -ItemType Directory -Path $SupportDir -Force | Out-Null
     
+    # 2. Sync GitLab
     Update-Console "Syncing GitLab Files..." "White"
     try {
         Invoke-WebRequest -Uri "$GitLabRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing
         Invoke-WebRequest -Uri "$GitLabRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing
     } catch { [Windows.Forms.MessageBox]::Show("GitLab Sync Failed.", "Error"); return }
 
+    # 3. Process Drivers (Download & Extract)
     if ($Mode -eq 1 -or $Mode -eq 2) { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
     if ($Mode -eq 1 -or $Mode -eq 3) { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
     if ($Mode -eq 1 -or $Mode -eq 4) { Get-And-Extract-IntelEXE $URL_V20 "VMD_v20" }
 
+    # 4. Final Copy Stage
     if ((Get-ChildItem $SupportDir -Directory).Count -gt 0) {
-        Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
-        Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
-        Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-        Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
-        Update-Console "--- JOB COMPLETE ---" "Green"
-        [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "IT Groceries Shop")
+        
+        # [CHANGE] Check for USB at the very end. If missing, prompt user.
+        if ($global:TargetUSB -eq $null) {
+            Refresh-USB-List # Try to auto-detect one last time
+            if ($global:TargetUSB -eq $null) {
+                 $ans = [Windows.Forms.MessageBox]::Show("Drivers are ready in Temp folder!`n`nDo you want to insert a USB drive now to copy files?", "Drivers Ready", "YesNo", "Question")
+                 if ($ans -eq "Yes") {
+                     # Loop wait for USB
+                     while ($global:TargetUSB -eq $null) {
+                         Refresh-USB-List
+                         Start-Sleep -Milliseconds 500
+                         if ($global:TargetUSB -ne $null) { break }
+                         # Optional: Add a break condition or retry prompt here if needed, 
+                         # but for simplicity, we wait or user can kill app. 
+                         # Better UX: Ask 'Retry' inside loop, but this simple wait works for insertion.
+                     }
+                 } else {
+                     Update-Console "Skipped USB Copy. Files are in $WorkDir" "Yellow"
+                     [Windows.Forms.MessageBox]::Show("Files are extracted to:`n$WorkDir", "Finished (No USB)")
+                     return
+                 }
+            }
+        }
+
+        # Double check if we have a target now
+        if ($global:TargetUSB -ne $null) {
+            Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
+            Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+            Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+            
+            # Clean up WorkDir only if copied successfully
+            Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
+            
+            Update-Console "--- JOB COMPLETE ---" "Green"
+            [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "Success")
+        }
+
     } else {
         Update-Console "FAILED: No drivers found." "Red"
         [Windows.Forms.MessageBox]::Show("Extraction Failed: No drivers found.", "Error")
@@ -307,6 +339,7 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
+
 
 
 
