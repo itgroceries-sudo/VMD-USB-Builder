@@ -11,6 +11,9 @@
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# [DATE CONFIG] Get Current Date
+$DateStr = Get-Date -Format "dd-MM-yyyy"
+
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
 $CurrentScript = $PSCommandPath
 if (-not $CurrentScript) {
@@ -82,7 +85,7 @@ if (Test-Path $IconGoogle) {
 Clear-Host
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
 Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan
-Write-Host "                 IT GROCERIES SHOP CONSOLE (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")             " -ForegroundColor White
+Write-Host "          IT GROCERIES CONSOLE [$DateStr]       " -ForegroundColor White
 Write-Host "      ==================================================" -ForegroundColor Cyan
 Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
 Write-Host "      > Initializing..."
@@ -90,7 +93,7 @@ Write-Host "      > Waiting for user input..." -ForegroundColor Gray
 
 # WinForm Setup
 $form = New-Object Windows.Forms.Form
-$form.Text = "VMD USB Builder by IT Groceries Shop"
+$form.Text = "VMD USB Builder by IT Groceries Shop [$DateStr]"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
@@ -294,12 +297,13 @@ $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick
 Refresh-USB-List
 
 $footer = New-Object Windows.Forms.Label
-$footer.Text = "Powered by IT Groceries Shop && my Teams"
+$footer.Text = "Powered by IT Groceries Shop && my Teams ([$DateStr])"
 $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
