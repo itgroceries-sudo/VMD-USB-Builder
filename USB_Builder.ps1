@@ -267,7 +267,7 @@ Add-Btn "[ 1 ] Build USB (All VMDs)" 130 "Magenta" 1
 Add-Btn "[ 2 ] Build USB (v18 Only)" 200 "Yellow" 2
 Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
 Add-Btn "[ 4 ] Build USB (v20 Only)" 340 "Yellow" 4
-Add-Btn "[ B ] Go to Firmware/BIOS" 430 "Red" "BIOS" $true
+Add-Btn "[ B ] Go to Firmware/BIOS" 430 "Green" "BIOS" $true
 Add-Btn "[ O ] Open Target!" 510 "Cyan" "OPEN" $false $true
 Add-Btn "[ X ] Exit" 510 "Red" "EXIT" $false $true
 
@@ -294,3 +294,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
