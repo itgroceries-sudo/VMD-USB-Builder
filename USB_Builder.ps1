@@ -3,14 +3,20 @@
 #>
 
 # =========================================================
-#  VMD USB Builder by IT Groceries Shop (v16.5 Stable)
+#  VMD USB Builder by IT Groceries Shop
+#  Version: 2.0 (Build 16.6)
 # =========================================================
 
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# [DATE CONFIG] Get Current Date
-$DateStr = Get-Date -Format "dd-MM-yyyy"
+# --- [VERSION CONTROL] ---
+$AppVer   = "2.0"
+$AppBuild = "16.6"
+$AppDate  = "03-01-2026"
+
+$WindowTitle  = "VMD USB Builder v$AppVer (Build $AppBuild)"
+$ConsoleTitle = "IT GROCERIES CONSOLE [v$AppVer]"
 
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
 $CurrentScript = $PSCommandPath
@@ -66,6 +72,8 @@ try {
 
 # Console Setup
 $ConsoleHandle = $Win32::GetConsoleWindow()
+$Host.UI.RawUI.WindowTitle = "$ConsoleTitle - $AppDate"
+
 $ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
 $ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
 $WinWidth = 650
@@ -83,7 +91,7 @@ if (Test-Path $IconGoogle) {
 Clear-Host
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
 Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan
-Write-Host "          IT GROCERIES CONSOLE [$DateStr]       " -ForegroundColor White
+Write-Host "             $ConsoleTitle            " -ForegroundColor White
 Write-Host "      ==================================================" -ForegroundColor Cyan
 Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
 Write-Host "      > Initializing..."
@@ -91,7 +99,7 @@ Write-Host "      > Waiting for user input..." -ForegroundColor Gray
 
 # WinForm Setup
 $form = New-Object Windows.Forms.Form
-$form.Text = "VMD USB Builder by IT Groceries Shop"
+$form.Text = "$WindowTitle"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
@@ -106,7 +114,7 @@ $AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $
 
 # --- [UI HEADER] ---
 $lblHeader = New-Object Windows.Forms.Label
-$lblHeader.Text = "--- VMD USB BUILDER v16.5 (Stable) ---"
+$lblHeader.Text = "--- VMD USB BUILDER v$AppVer ---"
 $lblHeader.ForeColor = [Drawing.Color]::Cyan
 $lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
 $lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
@@ -293,7 +301,7 @@ $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick
 Refresh-USB-List
 
 $footer = New-Object Windows.Forms.Label
-$footer.Text = "Powered by IT Groceries Shop && my Teams (Latest Update: 3-1-2026)"
+$footer.Text = "Powered by IT Groceries Shop && my Teams (Update: $AppDate)"
 $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($footer)
 
