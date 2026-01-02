@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $CurrentScript = $PSCommandPath
 
 if (-not $CurrentScript) {
-    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/VMD_Installer.ps1" # <--- แก้ URL นี้ให้ตรงกับ GitHub Raw ของคุณ
+    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1"
     $TempScript = "$env:TEMP\VMD_Installer.ps1"
     
     Write-Host "Downloading script to local machine..." -ForegroundColor Cyan
@@ -307,4 +307,5 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
+
 
