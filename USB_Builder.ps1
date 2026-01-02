@@ -8,8 +8,8 @@ $ErrorActionPreference = 'Stop'
 $CurrentScript = $PSCommandPath
 if (-not $CurrentScript) {
     # Web-Launch Mode (iex)
-    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/VMD_Installer.ps1"
-    $TempScript = "$env:TEMP\VMD_Installer.ps1"
+    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1"
+    $TempScript = "$env:TEMP\USB_Builder.ps1"
     Write-Host "Downloading script..." -ForegroundColor Cyan
     try { Invoke-WebRequest -Uri $WebSource -OutFile $TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing } catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit }
     Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs
@@ -282,3 +282,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 [System.Environment]::Exit(0)
+
