@@ -1,37 +1,35 @@
 # 🚀 VMD Driver Cloud Installer & USB Builder
 ### *Powered by IT Groceries Shop*
 
-![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-8.2%20Stable-purple.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-16.2%20Pro-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
 
-**The ultimate solution for "No Drives Found" during Windows Installation.** Automated. Intelligent. Always Fresh.
+**ทางออกที่ดีที่สุดสำหรับปัญหา "มองไม่เห็น SSD" (No Drives Found) ระหว่างลง Windows**
+ทำงานอัตโนมัติ 100% | อัจฉริยะ | ไดรเวอร์สดใหม่เสมอ
 
 ---
 
-## 📸 Overview
+![VMD USB Builder](https://github.com/user-attachments/assets/35fa58a5-94f7-4a83-9333-3941345cd149)
 
-This project solves the common issue where Windows Setup cannot detect NVMe drives on modern Intel platforms (11th Gen+ Tiger Lake/Alder Lake/Raptor Lake) due to Intel® VMD technology.
+---
 
-### 🛠 Phase 1: The Smart Builder (PowerShell)
-*Runs on your working PC to prepare the USB.*
+## 📸 ภาพรวม (Overview)
 
-<details>
-  <summary>Click to expand *(See more)*</summary>
-  <div align="center">
-      <img src="Images/image_363b6a.png" alt="VMD USB Builder" width="95%" />
-      <br />
-  </div>
-</details>
+โปรเจกต์นี้ถูกสร้างขึ้นเพื่อแก้ปัญหาโลกแตกของช่างคอมพิวเตอร์และผู้ใช้ทั่วไป ที่ลง Windows บนเครื่อง Intel Gen ใหม่ๆ (Gen 11 ขึ้นไป) แล้วมองไม่เห็น Hard Disk หรือ SSD เนื่องจากเทคโนโลยี Intel® VMD
 
-*(Screenshot: The Builder detecting CPU and recommending the correct driver version)*
+### 🛠 ส่วนที่ 1: ระบบสร้าง USB อัจฉริยะ (The Smart Builder)
+*ทำงานบน Windows ปกติ เพื่อเตรียมไฟล์ลง USB*
 
-**✨ Key Features:**
-* **📡 Live Fetch:** Downloads the *latest* `SetupRST.exe` directly from Intel's official servers. No stale drivers!
-* **🧠 Intelligent Scanning:** Automatically detects your current CPU generation and recommends the optimal driver version (v18, v19, or v20).
-* **⚡ Auto-Extraction:** Magically extracts `.inf` and `.sys` files from the downloaded `.exe` installer (bypassing the install wizard).
-* **💾 One-Click Deploy:** Copies the `Autounattend.xml` and driver payload directly to your Windows Installation USB.
+**(ใส่รูปโปรแกรม v16.2 ที่มี 2 หน้าต่างตรงนี้)**
 
-### 🔧 Phase 2: The Injector (WinPE)
-*Runs automatically when you boot the USB on the target PC.*
+**✨ ฟีเจอร์เด่น:**
+* **📡 โหลดไฟล์สด:** ดึงไฟล์ `SetupRST.exe` ตัวล่าสุดจาก Server ของ Intel โดยตรง ไม่มีการดองไฟล์เก่า
+* **🖥️ Dual-Window UI:** แสดงผลแบบมืออาชีพด้วยหน้าต่าง Console สำหรับดู Log และหน้าต่าง GUI สำหรับควบคุม
+* **🎮 Hybrid Control:** รองรับการสั่งงานครบทุกรูปแบบ ทั้งการใช้ **เมาส์ (Mouse)** คลิก, กด **คีย์บอร์ด (Keyboard)** ตัวเลข, หรือใช้ **แป้นตัวเลข (Numpad)** เพื่อความรวดเร็ว
+* **⚡ Auto-Extraction:** ใช้เทคนิคพิเศษในการ "แงะ" ไฟล์ไดรเวอร์ (.inf/.sys) ออกมาจากตัวติดตั้งของ Intel โดยอัตโนมัติ
+* **💾 ระบบเลือก USB:** มี Dropdown ให้เลือก Drive ที่จะลงไฟล์ พร้อมบอกพื้นที่ว่าง และป้องกันการลงผิดไดรฟ์
+
+### 🔧 ส่วนที่ 2: ระบบติดตั้งไดรเวอร์ (The Injector - WinPE)
+*ทำงานอัตโนมัติเมื่อนำ USB ไปบูตกับเครื่องที่ต้องการลง Windows*
 
 <details><summary>Click to expand *(See more)*</summary>
 <table border="0">
@@ -50,82 +48,77 @@ This project solves the common issue where Windows Setup cannot detect NVMe driv
 </table>
 </details>
 
-**✨ Intelligent Workflow:**
+**✨ ขั้นตอนการทำงานอัจฉริยะ:**
 
-1.  **⚡ Auto-Launch via XML:**
-    * Upon booting the USB, the `VMD_Installer.cmd` launches **automatically** (triggered by `Autounattend.xml`). No need to press Shift+F10 or type commands.
+1.  **⚡ ทำงานทันทีด้วย XML:**
+    * ทันทีที่บูต USB เข้าหน้า Setup ไฟล์ `Autounattend.xml` จะสั่งให้สคริปต์ `VMD_Installer.cmd` ทำงานทันทีโดยที่คุณไม่ต้องกดอะไรเลย
 
-2.  **💿 Instant OS Detection:**
-    * If you see **"Detected Storage: OS: [Drive]:\Windows"** appear in green immediately, it means your storage is **already visible**!
-    * *Insight:* This indicates VMD drivers might not be needed, or the drive is already recognized.
+2.  **💿 ตรวจจับ Windows เดิม:**
+    * ระบบจะสแกนหาว่าในเครื่องมี Windows เดิมอยู่หรือไม่
+    * ถ้าขึ้นตัวหนังสือสีเขียวว่า **"Detected Storage: OS: [Drive]:\Windows"** แปลว่ามองเห็น SSD แล้ว (อาจไม่ต้องลงไดรเวอร์เพิ่ม)
 
-3.  **🧠 Smart Hardware Matching (HWID):**
-    * The system scans your **Hardware ID (HWID)** and explicitly tells you which generation you are running (e.g., *Intel 11th Gen Tiger Lake*).
-    * Simply press the matching number on your keyboard: `[18]`, `[19]`, or `[20]`.
+3.  **🧠 ระบุรุ่น CPU แม่นยำ (HWID):**
+    * สคริปต์จะอ่านค่า Hardware ID และบอกคุณทันทีว่าเครื่องนี้ใช้ CPU Gen อะไร (เช่น *Intel 11th Gen Tiger Lake*)
+    * คุณแค่กดตัวเลขที่ตรงกันบนคีย์บอร์ด: `[18]`, `[19]`, หรือ `[20]`
 
-4.  **🔄 Post-Injection Rescan & Popup:**
-    * After loading a driver, the system performs a deep rescan for operating systems.
-    * If a Windows installation is successfully detected, a **VBScript Popup** will appear asking: *"Windows Found! Do you want to EXIT?"* (Yes/No).
+4.  **🔄 ระบบแจ้งเตือนเมื่อสำเร็จ (Popup):**
+    * หลังจากลงไดรเวอร์เสร็จ ระบบจะ Rescan ใหม่อีกครั้ง
+    * หากเจอ Windows หรือ Partition แล้ว จะมีหน้าต่าง **VBScript Popup** เด้งขึ้นมาแจ้งเตือนว่า:
+    * *"Windows Found! Do you want to EXIT?"* (เจอ Windows แล้ว จะปิดโปรแกรมเลยไหม?)
 
-5.  **🆘 Context-Aware Rescue Menu [ B ]:**
-    * The **[ B ] Go to Firmware/BIOS** option is **hidden by default**.
-    * It only appears if the system successfully detects an existing Windows installation (`Detected Storage: OS...`), giving you a quick way to reboot into BIOS if needed.
-
----
-
-## 🚀 How It Works
-
-### Step 1: Build Your USB
-1.  Run `PowerShell` and type 
-<details><summary>Click to expand</summary>
-
-```powershell
-iex (irm bit.ly/VMDUSBBuilder)
-```
-</details>
-
-2.  The script analyzes your hardware:
-    > `[ System Detected ] CPU: Intel Core i5-10600K -> Recommendation: Universal`
-3.  Select your desired mode:
-    * **[1] Build All:** Downloads v18, v19, and v20 (Safest bet).
-    * **[2-4] Specific Gen:** Downloads only what you need.
-4.  The script downloads `SetupRST.exe` from Intel, extracts the drivers using internal switches, and saves them to your USB's `\Support` folder.
-
-### Step 2: Install Windows
-1.  Boot your target PC with the prepared USB.
-2.  **Before** the partition screen, the **VMD Driver Installer** window will pop up.
-3.  Select the driver version corresponding to the target CPU (e.g., Press `20` for Gen 13/14).
-4.  Watch the magic happen! The script injects the driver, and Windows Setup proceeds normally.
+5.  **🆘 เมนูฉุกเฉิน [ B ]:**
+    * เมนู **[ B ] Go to Firmware/BIOS** จะซ่อนอยู่ และจะโผล่มาก็ต่อเมื่อสคริปต์ตรวจเจอ Windows แล้วเท่านั้น เพื่อให้คุณรีสตาร์ทเข้า BIOS ได้ง่ายๆ หากจำเป็น
 
 ---
 
-## 📦 Compatibility Matrix
+## 🚀 วิธีใช้งาน (How to Use)
 
-| Intel Generation | VMD Version | Folder Name | Status |
+### ขั้นตอนที่ 1: เตรียม USB (Builder)
+1.  เปิด **PowerShell** (Run as Administrator) บนเครื่องคอมพิวเตอร์
+2.  พิมพ์คำสั่งนี้แล้วกด Enter:
+    ```powershell
+    iex(irm bit.ly/VMDBuilder)
+    ```
+3.  ในหน้าต่างโปรแกรม:
+    * เลือกไดรฟ์ USB จากช่อง Dropdown ด้านบน
+    * กดปุ่ม **[ 1 ] Build USB (All)** หรือกดเลข **1** บนคีย์บอร์ดเพื่อเริ่มทำงาน
+4.  รอจนกว่าโปรแกรมจะแจ้งว่า **"Complete!"**
+
+### ขั้นตอนที่ 2: นำไปลง Windows (Installer)
+1.  นำ USB ที่ได้ไปเสียบกับเครื่องคอมพิวเตอร์เป้าหมาย
+2.  บูตเข้า USB ตามปกติ
+3.  **ก่อนเข้าหน้าแบ่งพาร์ติชัน** หน้าต่าง VMD Installer สีดำจะเด้งขึ้นมา
+4.  กดตัวเลขตามรุ่น CPU ที่หน้าจอมันแนะนำ (เช่น กด `20` สำหรับ Gen 13/14)
+5.  เมื่อเสร็จแล้ว หน้าต่างจะปิดลงเอง และคุณจะมองเห็น SSD พร้อมสำหรับลง Windows!
+
+---
+
+## 📦 ตารางความเข้ากันได้ (Compatibility)
+
+| Intel Generation | VMD Version | โฟลเดอร์ที่เก็บ | สถานะ |
 | :--- | :--- | :--- | :--- |
-| **Gen 10 - 11** (Ice/Tiger Lake) | **v18.x** | `VMD_v18` | ✅ Supported |
-| **Gen 12** (Alder Lake) | **v19.x** | `VMD_v19` | ✅ Supported |
-| **Gen 13 - 14+** (Raptor Lake) | **v20.x** | `VMD_v20` | ✅ Supported |
+| **Gen 10 - 11** (Ice/Tiger Lake) | **v18.x** | `VMD_v18` | ✅ รองรับ |
+| **Gen 12** (Alder Lake) | **v19.x** | `VMD_v19` | ✅ รองรับ |
+| **Gen 13 - 14+** (Raptor Lake) | **v20.x** | `VMD_v20` | ✅ รองรับ |
 
 ---
 
-## ⚠️ Requirements
-* **Source PC:** Windows 10/11 with PowerShell 5.1+ (for building the USB).
-* **Target PC:** Intel Platform with VMD/RST enabled in BIOS.
-* **Internet:** Required during the *Build* phase to fetch drivers.
+## ⚠️ สิ่งที่ต้องมี
+* **เครื่องสำหรับทำ USB:** Windows 10/11 และต่ออินเทอร์เน็ต (เพื่อโหลดไดรเวอร์)
+* **เครื่องเป้าหมาย:** คอมพิวเตอร์ Intel ที่เปิดโหมด VMD/RST ใน BIOS ไว้
 
 ---
 
-## 📜 Credits
-Developed with ❤️ by **IT Groceries Shop**.
-* *Script Logic:* PowerShell & Batch
+## 📜 เครดิต (Credits)
+พัฒนาด้วย ❤️ โดย **IT Groceries Shop**
+* *Script Logic:* PowerShell & Batch (Native Windows)
 * *Driver Source:* Intel Corporation
 
 ---
 
-## 🚀 Original Source
+## 🚀 ต้นฉบับ (Original Source)
 <details>
-  <summary>Click to watch video YouTube</summary>
+  <summary>คลิกเพื่อดูวิดีโอ YouTube</summary>
 <div align="center">
 
   [![YouTube Video](https://img.youtube.com/vi/Il1kgIVKE3U/sddefault.jpg)](https://www.youtube.com/watch?v=Il1kgIVKE3U  "แจกไฟล์ RST / VMD / AHCI แก้ปัญหาลง Windows แล้วมองไม่เห็น SSD/NVMe 4⃣🅺/|💻🅸🆃🅶🆁🅾🅲🅴🆁🅸🅴🆂™")
@@ -133,4 +126,3 @@ Developed with ❤️ by **IT Groceries Shop**.
 </details>
 
 ---
-
