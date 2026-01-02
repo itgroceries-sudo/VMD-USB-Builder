@@ -90,7 +90,7 @@ Write-Host "      > Waiting for user input..." -ForegroundColor Gray
 
 # WinForm Setup
 $form = New-Object Windows.Forms.Form
-$form.Text = "VMD USB Builder by IT Groceries Shop (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")"
+$form.Text = "VMD USB Builder by IT Groceries Shop"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
@@ -300,6 +300,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
