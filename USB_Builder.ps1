@@ -48,7 +48,7 @@ $Win32 = Add-Type -MemberDefinition @"
 "@ -Name "Win32Utils" -Namespace Win32 -PassThru
 
 # --- [CONFIG] ---
-$GitLabRaw   = "https://gitlab.com/itgroceries/itg_vmd_builder/-/raw/main"
+$GitHubRaw   = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main"
 $WorkDir     = "$env:TEMP\ITG_VMD_Build"
 $SupportDir  = "$WorkDir\Support"
 $script:Running = $true
@@ -216,11 +216,11 @@ function Build-VMD-Process {
     Update-Console "--- STARTED BUILD PROCESS ---" "Yellow"
     if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
     New-Item -ItemType Directory -Path $SupportDir -Force | Out-Null
-    Update-Console "Syncing GitLab Files..." "White"
+    Update-Console "Syncing GitHub Files..." "White"
     try {
-        Invoke-WebRequest -Uri "$GitLabRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
-        Invoke-WebRequest -Uri "$GitLabRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
-    } catch { [Windows.Forms.MessageBox]::Show("GitLab Sync Failed. Check Internet.", "Error"); return }
+        Invoke-WebRequest -Uri "$GitHubRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "$GitHubRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
+    } catch { [Windows.Forms.MessageBox]::Show("GitHub Sync Failed. Check Internet.", "Error"); return }
 
     if ($Mode -eq 1 -or $Mode -eq 2) { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
     if ($Mode -eq 1 -or $Mode -eq 3) { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
@@ -310,5 +310,6 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
