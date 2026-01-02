@@ -8,7 +8,7 @@
 
 ---
 
-![VMD USB Builder](https://github.com/user-attachments/assets/35fa58a5-94f7-4a83-9333-3941345cd149)
+![VMD USB Builder](https://github.com/user-attachments/assets/d2b11cfd-27cf-4c4c-bbba-f9bab20d9e0e)
 
 ---
 
@@ -126,3 +126,4 @@
 </details>
 
 ---
+
