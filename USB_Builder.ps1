@@ -15,8 +15,11 @@ $AppVer   = "2.0"
 $AppBuild = "16.6"
 $AppDate  = "03-01-2026"
 
+# [DATE CONFIG] Get Current Date
+$DateStr = Get-Date -Format "dd-MM-yyyy"
+
 $WindowTitle  = "VMD USB Builder v$AppVer (Build $AppBuild)"
-$ConsoleTitle = "IT GROCERIES CONSOLE [v$AppVer]"
+$ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]"
 
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
 $CurrentScript = $PSCommandPath
@@ -307,3 +310,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
