@@ -75,7 +75,7 @@ try {
 
 # Console Setup
 $ConsoleHandle = $Win32::GetConsoleWindow()
-$Host.UI.RawUI.WindowTitle = "$ConsoleTitle - $AppDate"
+$Host.UI.RawUI.WindowTitle = "$ConsoleTitle"
 
 $ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
 $ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
@@ -310,4 +310,5 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
