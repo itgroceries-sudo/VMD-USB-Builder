@@ -4,9 +4,28 @@
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# --- [ADMIN CHECK] ---
+# --- [SELF-DOWNLOAD & ADMIN CHECK] ---
+$CurrentScript = $PSCommandPath
+
+if (-not $CurrentScript) {
+    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/VMD_Installer.ps1" # <--- แก้ URL นี้ให้ตรงกับ GitHub Raw ของคุณ
+    $TempScript = "$env:TEMP\VMD_Installer.ps1"
+    
+    Write-Host "Downloading script to local machine..." -ForegroundColor Cyan
+    try {
+        Invoke-WebRequest -Uri $WebSource -OutFile $TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing
+    } catch {
+        Write-Host "Error: Cannot download script from GitHub." -ForegroundColor Red
+        Start-Sleep -Seconds 3
+        exit
+    }
+    
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs
+    exit
+}
+
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CurrentScript`"" -Verb RunAs
     exit
 }
 
@@ -288,3 +307,4 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
+
