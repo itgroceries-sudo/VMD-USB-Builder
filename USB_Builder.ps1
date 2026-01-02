@@ -1,17 +1,19 @@
 # =========================================================
-#  VMD USB Builder by IT Groceries Shop (v16.4 Open Target)
+#  VMD USB Builder by IT Groceries Shop (v16.5 Stable)
 # =========================================================
-$ErrorActionPreference = 'Stop'
+
+$ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
 $CurrentScript = $PSCommandPath
 if (-not $CurrentScript) {
-    # Web-Launch Mode (iex)
+    # Web-Launch Mode
     $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1"
     $TempScript = "$env:TEMP\USB_Builder.ps1"
     Write-Host "Downloading script..." -ForegroundColor Cyan
-    try { Invoke-WebRequest -Uri $WebSource -OutFile $TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing } catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit }
+    try { Invoke-WebRequest -Uri $WebSource -OutFile $TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop } 
+    catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit }
     Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs
     exit
 }
@@ -33,6 +35,7 @@ $Win32 = Add-Type -MemberDefinition @"
 $GitLabRaw   = "https://gitlab.com/itgroceries/itg_vmd_builder/-/raw/main"
 $WorkDir     = "$env:TEMP\ITG_VMD_Build"
 $SupportDir  = "$WorkDir\Support"
+$script:Running = $true
 
 # [ICONS]
 $IconGoogle  = "$env:TEMP\Google.ico"
@@ -50,8 +53,8 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 try {
-    Invoke-WebRequest -Uri $UrlGoogle -OutFile $IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction SilentlyContinue
-    Invoke-WebRequest -Uri $UrlITG -OutFile $IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction SilentlyContinue
+    Invoke-WebRequest -Uri $UrlGoogle -OutFile $IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing
+    Invoke-WebRequest -Uri $UrlITG -OutFile $IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing
 } catch {}
 
 # Console Setup
@@ -60,7 +63,6 @@ $ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
 $ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
 $WinWidth = 650
 $WinHeight = 700
-
 $LeftX = ($ScreenWidth / 2) - $WinWidth
 $RightX = ($ScreenWidth / 2)
 $CenterY = ($ScreenHeight / 2) - ($WinHeight / 2)
@@ -125,7 +127,7 @@ $form.Controls.Add($lblStatus)
 function Update-Console { param($Msg, $Color="White"); Write-Host "      > $Msg" -ForegroundColor $Color }
 
 function Refresh-USB-List {
-    $drives = Get-Volume | Where-Object {$_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null} | Sort-Object DriveLetter
+    $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {$_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null} | Sort-Object DriveLetter
     if ($cmbUSB.Items.Count -ne $drives.Count -or $cmbUSB.Items.Count -eq 0) {
         $cmbUSB.Items.Clear()
         if ($drives) {
@@ -146,24 +148,35 @@ function Refresh-USB-List {
 }
 
 function Open-Target {
-    if ($global:TargetUSB -ne $null) {
-        Invoke-Item $global:TargetUSB
-    } elseif (Test-Path $WorkDir) {
-        Invoke-Item $WorkDir
-    } else {
-        [Windows.Forms.MessageBox]::Show("No target folder available yet.`nPlease build the files first.", "Info")
-    }
+    if ($global:TargetUSB -ne $null) { Invoke-Item $global:TargetUSB } elseif (Test-Path $WorkDir) { Invoke-Item $WorkDir } 
+    else { [Windows.Forms.MessageBox]::Show("No target folder available.", "Info") }
 }
 
 function GoTo-BIOS {
-    if ([Windows.Forms.MessageBox]::Show("Restart to BIOS?", "GO2BIOS", "YesNo") -eq "Yes") { Start-Process "shutdown.exe" -ArgumentList "/r /fw /t 0" -NoNewWindow }
+    # [FIX] เพิ่ม Try/Catch ป้องกัน Error 203 ถ้าเข้า BIOS ไม่ได้จะ Restart ปกติแทน
+    if ([Windows.Forms.MessageBox]::Show("Restart to BIOS?", "GO2BIOS", "YesNo") -eq "Yes") {
+        try {
+            Start-Process "shutdown.exe" -ArgumentList "/r /fw /t 0" -NoNewWindow -ErrorAction Stop
+        } catch {
+            Start-Process "shutdown.exe" -ArgumentList "/r /t 0" -NoNewWindow
+        }
+    }
+}
+
+function Close-App {
+    $script:Running = $false # สั่งหยุด Loop
+    try { $timer.Stop() } catch {}
+    $form.Close()
+    [System.Environment]::Exit(0)
 }
 
 function Get-And-Extract-IntelEXE {
     param ($Url, $DestName)
     $ExePath = "$WorkDir\$DestName.exe"; $ExtractPath = "$WorkDir\Temp_Extract_$DestName"
     Update-Console "Downloading $DestName..." "Cyan"
-    try { Invoke-WebRequest -Uri $Url -OutFile $ExePath -UserAgent "Mozilla/5.0" -UseBasicParsing } catch { Update-Console "Download Failed!" "Red"; return }
+    try { Invoke-WebRequest -Uri $Url -OutFile $ExePath -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop } 
+    catch { Update-Console "Download Failed!" "Red"; return }
+    
     if (Test-Path $ExePath) {
         Update-Console "Extracting drivers..." "Gray"
         try {
@@ -188,9 +201,9 @@ function Build-VMD-Process {
     New-Item -ItemType Directory -Path $SupportDir -Force | Out-Null
     Update-Console "Syncing GitLab Files..." "White"
     try {
-        Invoke-WebRequest -Uri "$GitLabRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing
-        Invoke-WebRequest -Uri "$GitLabRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing
-    } catch { [Windows.Forms.MessageBox]::Show("GitLab Sync Failed.", "Error"); return }
+        Invoke-WebRequest -Uri "$GitLabRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "$GitLabRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
+    } catch { [Windows.Forms.MessageBox]::Show("GitLab Sync Failed. Check Internet.", "Error"); return }
 
     if ($Mode -eq 1 -or $Mode -eq 2) { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
     if ($Mode -eq 1 -or $Mode -eq 3) { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
@@ -202,12 +215,14 @@ function Build-VMD-Process {
             if ($global:TargetUSB -eq $null) {
                  if ([Windows.Forms.MessageBox]::Show("Drivers are ready in Temp!`n`nInsert USB to copy?", "Ready", "YesNo", "Question") -eq "Yes") {
                      Update-Console "Waiting for USB insertion..." "Yellow"
-                     while ($global:TargetUSB -eq $null) {
+                     # [FIX] ใช้ตัวแปร $script:Running เพื่อให้กด Exit แล้วออกจาก Loop ได้
+                     while ($global:TargetUSB -eq $null -and $script:Running) {
                          [System.Windows.Forms.Application]::DoEvents()
                          Refresh-USB-List
                          Start-Sleep -Milliseconds 500
                          if ($form.IsDisposed) { return }
                      }
+                     if (!$script:Running) { return } # ถ้ากด Exit ให้ออกเลย
                  } else {
                      Update-Console "Skipped USB Copy." "Yellow"
                      [Windows.Forms.MessageBox]::Show("Files are in Temp folder.`nClick 'Open Target' to view.", "Finished")
@@ -233,7 +248,6 @@ function Build-VMD-Process {
 function Add-Btn {
     param($Txt, $Y, $Color, $M, $IsBIOS=$false, $IsAction=$false)
     $b = New-Object Windows.Forms.Button
-    # ถ้าเป็นปุ่ม Action (Open/Exit) ให้กว้างครึ่งเดียว
     $W = if ($IsAction) { 220 } else { 450 }
     $X = if ($IsAction -and $M -eq "EXIT") { 320 } else { 90 }
     
@@ -244,7 +258,7 @@ function Add-Btn {
     
     if ($IsBIOS) { $b.Add_Click({ GoTo-BIOS }) }
     elseif ($M -eq "OPEN") { $b.Add_Click({ Open-Target }) }
-    elseif ($M -eq "EXIT") { $b.Add_Click({ $form.Close() }) }
+    elseif ($M -eq "EXIT") { $b.Add_Click({ Close-App }) }
     else { $b.Add_Click({ Build-VMD-Process -Mode $this.Tag }) }
     $form.Controls.Add($b)
 }
@@ -254,8 +268,6 @@ Add-Btn "[ 2 ] Build USB (v18 Only)" 200 "Yellow" 2
 Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
 Add-Btn "[ 4 ] Build USB (v20 Only)" 340 "Yellow" 4
 Add-Btn "[ B ] Go to Firmware/BIOS" 430 "Red" "BIOS" $true
-
-# Bottom Row: Open Target & Exit
 Add-Btn "[ O ] Open Target!" 510 "Cyan" "OPEN" $false $true
 Add-Btn "[ X ] Exit" 510 "Red" "EXIT" $false $true
 
@@ -267,10 +279,10 @@ $form.Add_KeyDown({
     if ($_.KeyCode -eq 'D4' -or $_.KeyCode -eq 'NumPad4') { Build-VMD-Process -Mode 4 }
     if ($_.KeyCode -eq 'B') { GoTo-BIOS }
     if ($_.KeyCode -eq 'O') { Open-Target }
-    if ($_.KeyCode -eq 'X') { $form.Close() }
+    if ($_.KeyCode -eq 'X') { Close-App }
 })
 
-$form.Add_FormClosed({ try { $timer.Stop() } catch {}; [System.Environment]::Exit(0) })
+$form.Add_FormClosed({ Close-App })
 
 $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick({ Refresh-USB-List }); $timer.Start()
 Refresh-USB-List
@@ -281,8 +293,4 @@ $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockSty
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
-[System.Environment]::Exit(0)
-
-
-
-
+Close-App
