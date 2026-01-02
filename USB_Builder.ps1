@@ -1,3 +1,9 @@
+<#
+.SYNOPSIS
+    Web Launcher for Win10-SetupDisk
+    Downloads and runs Setup.cmd from GitHub
+#>
+
 # =========================================================
 #  VMD USB Builder by IT Groceries Shop (v16.5 Stable)
 # =========================================================
@@ -76,7 +82,7 @@ if (Test-Path $IconGoogle) {
 Clear-Host
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
 Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan
-Write-Host "                 IT GROCERIES SHOP CONSOLE              " -ForegroundColor White
+Write-Host "                 IT GROCERIES SHOP CONSOLE (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")             " -ForegroundColor White
 Write-Host "      ==================================================" -ForegroundColor Cyan
 Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
 Write-Host "      > Initializing..."
@@ -84,7 +90,7 @@ Write-Host "      > Waiting for user input..." -ForegroundColor Gray
 
 # WinForm Setup
 $form = New-Object Windows.Forms.Form
-$form.Text = "VMD USB Builder by IT Groceries Shop"
+$form.Text = "VMD USB Builder by IT Groceries Shop (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
@@ -99,7 +105,7 @@ $AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $
 
 # --- [UI HEADER] ---
 $lblHeader = New-Object Windows.Forms.Label
-$lblHeader.Text = "--- VMD USB BUILDER (Final) ---"
+$lblHeader.Text = "--- VMD USB BUILDER v16.5 (Stable) ---"
 $lblHeader.ForeColor = [Drawing.Color]::Cyan
 $lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
 $lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
@@ -294,5 +300,6 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
