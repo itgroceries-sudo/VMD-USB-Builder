@@ -1,9 +1,9 @@
 # 🚀 VMD Driver Cloud Installer & USB Builder
 ### *Powered by IT Groceries Shop*
 
-![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-16.2%20Pro-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-16.5%20Stable-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
 
-**ทางออกที่ดีที่สุดสำหรับปัญหา "มองไม่เห็น SSD" (No Drives Found) ระหว่างลง Windows**
+**ทางออกสำหรับปัญหา "มองไม่เห็น SSD" (No Drives Found) ระหว่างลง Windows**
 ทำงานอัตโนมัติ 100% | อัจฉริยะ | ไดรเวอร์สดใหม่เสมอ
 
 ---
@@ -98,7 +98,7 @@
 | Intel Generation | VMD Version | โฟลเดอร์ที่เก็บ | สถานะ |
 | :--- | :--- | :--- | :--- |
 | **Gen 10 - 11** (Ice/Tiger Lake) | **v18.x** | `VMD_v18` | ✅ รองรับ |
-| **Gen 12** (Alder Lake) | **v19.x** | `VMD_v19` | ✅ รองรับ |
+| **Gen 12**  (Alder Lake) | **v19.x** | `VMD_v19` | ✅ รองรับ |
 | **Gen 13 - 14+** (Raptor Lake) | **v20.x** | `VMD_v20` | ✅ รองรับ |
 
 ---
@@ -126,5 +126,6 @@
 </details>
 
 ---
+
 
 
