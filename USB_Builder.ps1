@@ -18,7 +18,7 @@ $AppDate  = "03-01-2026"
 # [DATE CONFIG] Get Current Date
 $DateStr = Get-Date -Format "dd-MM-yyyy"
 
-$WindowTitle  = "VMD USB Builder v$AppVer (Build $AppBuild)"
+$WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]"
 $ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]"
 
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
@@ -117,7 +117,7 @@ $AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $
 
 # --- [UI HEADER] ---
 $lblHeader = New-Object Windows.Forms.Label
-$lblHeader.Text = "--- VMD USB BUILDER v$AppVer ---"
+$lblHeader.Text = "--- VMD USB BUILDER v$AppVer Build$AppBuild ---"
 $lblHeader.ForeColor = [Drawing.Color]::Cyan
 $lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
 $lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
@@ -367,9 +367,10 @@ $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick
 Refresh-USB-List
 
 $footer = New-Object Windows.Forms.Label
-$footer.Text = "Powered by IT Groceries Shop && my Teams (Update: $AppDate)"
+$footer.Text = "Powered by IT Groceries Shop && my Teams (v$AppVer Build$AppBuild Update: $AppDate)"
 $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
