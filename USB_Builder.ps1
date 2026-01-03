@@ -144,7 +144,7 @@ $form.Controls.Add($cbShowAll)
 # [CRITICAL] Store in script scope for stability
 $script:cbShowAll = $cbShowAll 
 
-# ปุ่ม Copy to Drive (สีฟ้าสดใส)
+# Copy to Drive
 $btnCopy = New-Object Windows.Forms.Button
 $btnCopy.Text = "Copy to Drive >"
 $btnCopy.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold)
@@ -397,5 +397,3 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
