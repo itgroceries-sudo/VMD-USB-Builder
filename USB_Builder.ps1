@@ -109,6 +109,8 @@ $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
 $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
+$form.MaximizeBox = $false
+$form.ControlBox = $false
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
 $global:TargetUSB = $null
@@ -397,3 +399,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
