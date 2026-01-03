@@ -366,6 +366,17 @@ $form.Add_FormClosed({ Close-App })
 $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick({ Refresh-USB-List }); $timer.Start()
 Refresh-USB-List
 
+# [NEW] GitHub Link (Bottom Right)
+$lnkGit = New-Object Windows.Forms.LinkLabel
+$lnkGit.Text = "#Link Github"
+$lnkGit.LinkColor = [Drawing.Color]::Cyan
+$lnkGit.ActiveLinkColor = [Drawing.Color]::Yellow
+$lnkGit.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold)
+$lnkGit.AutoSize = $true
+$lnkGit.Location = New-Object Drawing.Point(530, 635) 
+$lnkGit.Add_LinkClicked({ Start-Process "https://github.com/itgroceries-sudo/VMD-USB-Builder/tree/main" })
+$form.Controls.Add($lnkGit)
+
 $footer = New-Object Windows.Forms.Label
 $footer.Text = "Powered by IT Groceries Shop && my Teams (v$AppVer Build$AppBuild Update: $AppDate)"
 $footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
@@ -373,4 +384,5 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
