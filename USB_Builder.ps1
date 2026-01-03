@@ -4,7 +4,7 @@
 
 # =========================================================
 #  VMD USB Builder by IT Groceries Shop
-#  Version: 2.0 (Build 16.6)
+#  Version: 2.0 (Build 16.8 Final Fix)
 # =========================================================
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -12,7 +12,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 
 # --- [VERSION CONTROL] ---
 $AppVer   = "2.0"
-$AppBuild = "16.7"
+$AppBuild = "16.8"
 $AppDate  = "03-01-2026"
 
 # [DATE CONFIG] Get Current Date
@@ -94,7 +94,7 @@ if (Test-Path $IconGoogle) {
 Clear-Host
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
 Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan
-Write-Host "             $ConsoleTitle            " -ForegroundColor White
+Write-Host "             $ConsoleTitle             " -ForegroundColor White
 Write-Host "      ==================================================" -ForegroundColor Cyan
 Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
 Write-Host "      > Initializing..."
@@ -132,21 +132,35 @@ $cmbUSB.BackColor = [Drawing.Color]::DimGray; $cmbUSB.ForeColor = [Drawing.Color
 $cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
 $form.Controls.Add($cmbUSB)
 
+# [FIX] Checkbox & Copy Button
 $cbShowAll = New-Object Windows.Forms.CheckBox
-$cbShowAll.Text = "Show All Drives (NVMe / External / Fixed)"
+$cbShowAll.Text = "Show All Drives"
 $cbShowAll.Font = New-Object Drawing.Font("Consolas", 9)
 $cbShowAll.ForeColor = [Drawing.Color]::Gray
-$cbShowAll.Location = New-Object Drawing.Point(90, 90)
-$cbShowAll.Size = New-Object Drawing.Size(400, 20)
-$cbShowAll.Add_CheckedChanged({ Refresh-USB-List }) # กดปุ๊บ รีเฟรชปั๊บ
+$cbShowAll.Location = New-Object Drawing.Point(90, 92)
+$cbShowAll.Size = New-Object Drawing.Size(200, 20)
 $form.Controls.Add($cbShowAll)
+
+# [CRITICAL] Store in script scope for stability
+$script:cbShowAll = $cbShowAll 
+
+# ปุ่ม Copy to Drive (สีฟ้าสดใส)
+$btnCopy = New-Object Windows.Forms.Button
+$btnCopy.Text = "Copy to Drive >"
+$btnCopy.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold)
+$btnCopy.ForeColor = [Drawing.Color]::White
+$btnCopy.BackColor = [Drawing.Color]::RoyalBlue
+$btnCopy.FlatStyle = [Windows.Forms.FlatStyle]::Flat
+$btnCopy.Location = New-Object Drawing.Point(390, 90)
+$btnCopy.Size = New-Object Drawing.Size(150, 24)
+$form.Controls.Add($btnCopy)
 
 $lblStatus = New-Object Windows.Forms.Label
 $lblStatus.Text = "Scanning for USB..."
 $lblStatus.ForeColor = [Drawing.Color]::Yellow
 $lblStatus.Font = New-Object Drawing.Font("Consolas", 10)
 $lblStatus.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
-$lblStatus.Location = New-Object Drawing.Point(0, 115); $lblStatus.Width = $WinWidth
+$lblStatus.Location = New-Object Drawing.Point(0, 118); $lblStatus.Width = $WinWidth
 $form.Controls.Add($lblStatus)
 
 # --- [FUNCTIONS] ---
@@ -154,9 +168,10 @@ $form.Controls.Add($lblStatus)
 function Update-Console { param($Msg, $Color="White"); Write-Host "      > $Msg" -ForegroundColor $Color }
 
 function Refresh-USB-List {
+    # [FIX] Use $script:cbShowAll to prevent crash
     $SysDrive = $env:SystemDrive.Substring(0,1)
     $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
-        if ($cbShowAll.Checked) {
+        if ($script:cbShowAll.Checked) {
             ($_.DriveType -eq 'Removable' -or $_.DriveType -eq 'Fixed') -and $_.DriveLetter -ne $null -and $_.DriveLetter -ne $SysDrive
         } else {
             $_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null
@@ -174,14 +189,36 @@ function Refresh-USB-List {
             if ($cmbUSB.SelectedIndex -eq -1 -and $cmbUSB.Items.Count -gt 0) { $cmbUSB.SelectedIndex = 0 }
         } else { 
             $cmbUSB.Items.Clear()
-            if ($cbShowAll.Checked) { $cmbUSB.Text = "No Drives Found" } else { $cmbUSB.Text = "No USB Found" }
+            if ($script:cbShowAll.Checked) { $cmbUSB.Text = "No Drives Found" } else { $cmbUSB.Text = "No USB Found" }
         }
     }
     if ($cmbUSB.SelectedIndex -ne -1) {
         $global:TargetUSB = $cmbUSB.SelectedItem.ToString().Substring(1, 2) + "\"
         $lblStatus.Text = "Target Ready: $global:TargetUSB"; $lblStatus.ForeColor = [Drawing.Color]::Lime
     } else {
-        $global:TargetUSB = $null; $lblStatus.Text = "Please select a Drive..."; $lblStatus.ForeColor = [Drawing.Color]::Red
+        $global:TargetUSB = $null; $lblStatus.Text = "Please Select Drive..."; $lblStatus.ForeColor = [Drawing.Color]::Red
+    }
+}
+
+# [NEW] Manual Copy Function
+function Start-Manual-Copy {
+    if ($global:TargetUSB -eq $null) {
+        [Windows.Forms.MessageBox]::Show("Please select a target drive first!", "Error")
+        return
+    }
+    
+    if (-not (Test-Path "$SupportDir\VMD_Installer.cmd")) {
+        [Windows.Forms.MessageBox]::Show("No drivers found in Temp folder!`nPlease press [1] - [4] to Build files first.", "Files Not Ready")
+        return
+    }
+
+    $ans = [Windows.Forms.MessageBox]::Show("Copy files to: $global:TargetUSB ?", "Confirm Copy", "YesNo", "Question")
+    if ($ans -eq "Yes") {
+        Update-Console "Manual Copying to $($global:TargetUSB)..." "Cyan"
+        Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+        Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+        Update-Console "--- COPY COMPLETE ---" "Green"
+        [Windows.Forms.MessageBox]::Show("Files copied successfully to $global:TargetUSB", "Success")
     }
 }
 
@@ -250,6 +287,7 @@ function Build-VMD-Process {
         if ($global:TargetUSB -eq $null) {
             Refresh-USB-List
             if ($global:TargetUSB -eq $null) {
+                 # [FIX] Use $script:Running + try/catch loop
                  if ([Windows.Forms.MessageBox]::Show("Drivers are ready in Temp!`n`nInsert USB to copy?", "Ready", "YesNo", "Question") -eq "Yes") {
                      Update-Console "Waiting for USB insertion..." "Yellow"
                      while ($global:TargetUSB -eq $null -and $script:Running) {
@@ -270,7 +308,9 @@ function Build-VMD-Process {
             Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
             Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
             Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-            Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
+            # [OPTION] Keep temp files for Manual Copy later
+            # Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
+            
             Update-Console "--- JOB COMPLETE ---" "Green"
             [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "Success")
         }
@@ -299,16 +339,18 @@ function Add-Btn {
     $form.Controls.Add($b)
 }
 
-# [ADJUST] Shift Y +20px (130->150, 200->220, etc.)
 Add-Btn "[ 1 ] Build USB (All VMDs)" 150 "Magenta" 1
 Add-Btn "[ 2 ] Build USB (v18 Only)" 220 "Yellow" 2
-Add-Btn "[ 3 ] Build USB (v19 Only)" 290 "Yellow" 3
+Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
 Add-Btn "[ 4 ] Build USB (v20 Only)" 360 "Yellow" 4
 Add-Btn "[ B ] Go to Firmware/BIOS" 450 "Red" "BIOS" $true
 Add-Btn "[ O ] Open Target!" 530 "Cyan" "OPEN" $false $true
 Add-Btn "[ X ] Exit" 530 "Green" "EXIT" $false $true
 
-# --- [EVENTS] ---
+# [EVENTS]
+$cbShowAll.Add_CheckedChanged({ Refresh-USB-List })
+$btnCopy.Add_Click({ Start-Manual-Copy }) # Connect button event
+
 $form.Add_KeyDown({
     if ($_.KeyCode -eq 'D1' -or $_.KeyCode -eq 'NumPad1') { Build-VMD-Process -Mode 1 }
     if ($_.KeyCode -eq 'D2' -or $_.KeyCode -eq 'NumPad2') { Build-VMD-Process -Mode 2 }
