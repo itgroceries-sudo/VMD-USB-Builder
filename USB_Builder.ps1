@@ -12,7 +12,7 @@ $ErrorActionPreference = 'SilentlyContinue'
 
 # --- [VERSION CONTROL] ---
 $AppVer   = "2.0"
-$AppBuild = "16.6"
+$AppBuild = "16.7"
 $AppDate  = "03-01-2026"
 
 # [DATE CONFIG] Get Current Date
@@ -331,7 +331,3 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
-
-
