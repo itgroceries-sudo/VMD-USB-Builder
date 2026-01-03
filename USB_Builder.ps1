@@ -93,10 +93,8 @@ if (Test-Path $IconGoogle) {
     if ($hIcon -ne [IntPtr]::Zero) { [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0, $hIcon); [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1, $hIcon) }
 }
 
-# จัดตำแหน่งก่อน
 [void]$Win32::SetWindowPos($ConsoleHandle, [IntPtr]::Zero, $LeftX, $CenterY, $WinWidth, $WinHeight, 0x0040)
 
-# [FIX] ล็อค Console หลังจากจัดตำแหน่งเสร็จแล้ว (เพื่อให้ชัวร์ว่าล็อคอยู่)
 $hMenu = $Win32::GetSystemMenu($ConsoleHandle, $false)
 if ($hMenu -ne [IntPtr]::Zero) {
     [void]$Win32::DeleteMenu($hMenu, 0xF010, 0x0000) # Disable Move    
@@ -120,23 +118,19 @@ $form.Text = "$WindowTitle"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 
-# [FIX] ใช้ Padding ดันเนื้อหา (Header/Footer) เข้ามา 3px เพื่อไม่ให้ทับเส้นขอบ
 $form.Padding = New-Object Windows.Forms.Padding(3)
 
-# [FIX] เปลี่ยนเป็น None เพื่อตัด Title Bar ทิ้ง (แก้ปัญหาลากได้ 100%)
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::None 
 $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
 
-# [FIX] วาดเส้นขอบสีฟ้า (Cyan) แบบ Inset (ไม่หลุดขอบ และไม่โดนบัง)
 $form.Add_Paint({
     param($sender, $e)
     $borderColor = [Drawing.Color]::Cyan
-    $borderWidth = 2  # ความหนาเส้น
+    $borderWidth = 2
     
     $pen = New-Object Drawing.Pen($borderColor, $borderWidth)
-    # สั่งให้เส้นวาดกินเข้ามาข้างในหน้าต่าง (สำคัญมาก!)
     $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
     
     $rect = $form.ClientRectangle
@@ -156,7 +150,6 @@ $lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::B
 $lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $lblHeader.Dock = [Windows.Forms.DockStyle]::Top
 $lblHeader.Height = 40
-# ให้กด Header แล้วลากไม่ได้ (เผื่อไว้)
 $lblHeader.Add_MouseDown({ $form.Capture = $false }) 
 $form.Controls.Add($lblHeader)
 
@@ -425,4 +418,5 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
