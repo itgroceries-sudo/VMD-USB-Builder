@@ -120,21 +120,27 @@ $form.Text = "$WindowTitle"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
 
+# [FIX] ใช้ Padding ดันเนื้อหา (Header/Footer) เข้ามา 3px เพื่อไม่ให้ทับเส้นขอบ
+$form.Padding = New-Object Windows.Forms.Padding(3)
+
 # [FIX] เปลี่ยนเป็น None เพื่อตัด Title Bar ทิ้ง (แก้ปัญหาลากได้ 100%)
 $form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::None 
 $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
 
-# [NEW] วาดเส้นขอบสีฟ้า (Cyan) รอบโปรแกรม เพื่อความสวยงาม (เพราะเราตัดขอบทิ้งไปแล้ว)
+# [FIX] วาดเส้นขอบสีฟ้า (Cyan) แบบ Inset (ไม่หลุดขอบ และไม่โดนบัง)
 $form.Add_Paint({
     param($sender, $e)
     $borderColor = [Drawing.Color]::Cyan
-    $borderWidth = 2
-    $e.Graphics.DrawRectangle(
-        (New-Object Drawing.Pen($borderColor, $borderWidth)), 
-        0, 0, ($form.Width - 1), ($form.Height - 1)
-    )
+    $borderWidth = 2  # ความหนาเส้น
+    
+    $pen = New-Object Drawing.Pen($borderColor, $borderWidth)
+    # สั่งให้เส้นวาดกินเข้ามาข้างในหน้าต่าง (สำคัญมาก!)
+    $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
+    
+    $rect = $form.ClientRectangle
+    $e.Graphics.DrawRectangle($pen, $rect)
 })
 
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
@@ -419,3 +425,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
