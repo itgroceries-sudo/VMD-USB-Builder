@@ -113,7 +113,7 @@ if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
 $global:TargetUSB = $null
 $rnd = New-Object System.Random
-$AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $rnd.Next(-12, 13)), ($this.Location.Y + $rnd.Next(-12, 13))) }
+# $AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $rnd.Next(-12, 13)), ($this.Location.Y + $rnd.Next(-12, 13))) }
 
 # --- [UI HEADER] ---
 $lblHeader = New-Object Windows.Forms.Label
@@ -330,7 +330,20 @@ function Add-Btn {
     $b.Text = $Txt; $b.Size = New-Object Drawing.Size($W, 50); $b.Location = New-Object Drawing.Point($X, $Y)
     $b.ForeColor = [Drawing.Color]::$Color; $b.FlatStyle = [Windows.Forms.FlatStyle]::Flat
     $b.Font = New-Object Drawing.Font("Consolas", 10, [Drawing.FontStyle]::Bold)
-    $b.Tag = $M; $b.Add_MouseEnter($AntiGravity)
+    $b.Tag = $M
+    
+    $b | Add-Member -MemberType NoteProperty -Name "Origin" -Value $b.Location
+
+    $b.Add_MouseEnter({
+        $Shake = 3 
+        $NewX = $this.Origin.X + $rnd.Next(-$Shake, $Shake + 1)
+        $NewY = $this.Origin.Y + $rnd.Next(-$Shake, $Shake + 1)
+        $this.Location = New-Object Drawing.Point($NewX, $NewY)
+    })
+
+    $b.Add_MouseLeave({
+        $this.Location = $this.Origin
+    })
     
     if ($IsBIOS) { $b.Add_Click({ GoTo-BIOS }) }
     elseif ($M -eq "OPEN") { $b.Add_Click({ Open-Target }) }
@@ -341,7 +354,7 @@ function Add-Btn {
 
 Add-Btn "[ 1 ] Build USB (All VMDs)" 150 "Magenta" 1
 Add-Btn "[ 2 ] Build USB (v18 Only)" 220 "Yellow" 2
-Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
+Add-Btn "[ 3 ] Build USB (v19 Only)" 290 "Yellow" 3
 Add-Btn "[ 4 ] Build USB (v20 Only)" 360 "Yellow" 4
 Add-Btn "[ B ] Go to Firmware/BIOS" 450 "Red" "BIOS" $true
 Add-Btn "[ O ] Open Target!" 530 "Cyan" "OPEN" $false $true
