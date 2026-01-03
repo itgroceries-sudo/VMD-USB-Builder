@@ -45,6 +45,10 @@ $Win32 = Add-Type -MemberDefinition @"
     [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
     [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] public static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
+    
+    // [NEW] เพิ่ม 2 บรรทัดนี้เพื่อจัดการปุ่ม X และ M ของ Console
+    [DllImport("user32.dll")] public static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+    [DllImport("user32.dll")] public static extern bool DeleteMenu(IntPtr hMenu, uint uPosition, uint uFlags);
 "@ -Name "Win32Utils" -Namespace Win32 -PassThru
 
 # --- [CONFIG] ---
@@ -75,6 +79,12 @@ try {
 
 # Console Setup
 $ConsoleHandle = $Win32::GetConsoleWindow()
+$hMenu = $Win32::GetSystemMenu($ConsoleHandle, $false)
+if ($hMenu -ne [IntPtr]::Zero) {
+    [void]$Win32::DeleteMenu($hMenu, 0xF060, 0x0000) # Disable Close (X)
+    [void]$Win32::DeleteMenu($hMenu, 0xF030, 0x0000) # Disable Maximize
+    [void]$Win32::DeleteMenu($hMenu, 0xF000, 0x0000) # Disable Resize
+}
 $Host.UI.RawUI.WindowTitle = "$ConsoleTitle"
 
 $ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
@@ -399,4 +409,5 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
