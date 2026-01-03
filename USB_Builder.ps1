@@ -4,7 +4,7 @@
 
 # =========================================================
 #  VMD USB Builder by IT Groceries Shop
-#  Version: 2.0 (Build 16.8 Final Fix)
+#  Version: 2.0 (Build 16.8 Final Locked)
 # =========================================================
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -49,6 +49,7 @@ $Win32 = Add-Type -MemberDefinition @"
     [DllImport("user32.dll")] public static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
     [DllImport("user32.dll")] public static extern bool DeleteMenu(IntPtr hMenu, uint uPosition, uint uFlags);
 "@ -Name "Win32Utils" -Namespace Win32 -PassThru
+
 # --- [CONFIG] ---
 $GitHubRaw   = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main"
 $WorkDir     = "$env:TEMP\ITG_VMD_Build"
@@ -77,13 +78,6 @@ try {
 
 # Console Setup
 $ConsoleHandle = $Win32::GetConsoleWindow()
-$hMenu = $Win32::GetSystemMenu($ConsoleHandle, $false)
-if ($hMenu -ne [IntPtr]::Zero) {
-    [void]$Win32::DeleteMenu($hMenu, 0xF010, 0x0000) # Disable Move    
-    [void]$Win32::DeleteMenu($hMenu, 0xF060, 0x0000) # Disable Close
-    [void]$Win32::DeleteMenu($hMenu, 0xF030, 0x0000) # Disable Maximize
-    [void]$Win32::DeleteMenu($hMenu, 0xF000, 0x0000) # Disable Resize
-}
 $Host.UI.RawUI.WindowTitle = "$ConsoleTitle"
 
 $ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
@@ -98,7 +92,18 @@ if (Test-Path $IconGoogle) {
     $hIcon = $Win32::LoadImage([IntPtr]::Zero, $IconGoogle, 1, 0, 0, 0x10)
     if ($hIcon -ne [IntPtr]::Zero) { [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0, $hIcon); [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1, $hIcon) }
 }
+
+# จัดตำแหน่งก่อน
 [void]$Win32::SetWindowPos($ConsoleHandle, [IntPtr]::Zero, $LeftX, $CenterY, $WinWidth, $WinHeight, 0x0040)
+
+# [FIX] ล็อค Console หลังจากจัดตำแหน่งเสร็จแล้ว (เพื่อให้ชัวร์ว่าล็อคอยู่)
+$hMenu = $Win32::GetSystemMenu($ConsoleHandle, $false)
+if ($hMenu -ne [IntPtr]::Zero) {
+    [void]$Win32::DeleteMenu($hMenu, 0xF010, 0x0000) # Disable Move    
+    [void]$Win32::DeleteMenu($hMenu, 0xF060, 0x0000) # Disable Close
+    [void]$Win32::DeleteMenu($hMenu, 0xF030, 0x0000) # Disable Maximize
+    [void]$Win32::DeleteMenu($hMenu, 0xF000, 0x0000) # Disable Resize
+}
 
 Clear-Host
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
@@ -114,23 +119,28 @@ $form = New-Object Windows.Forms.Form
 $form.Text = "$WindowTitle"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
 $form.BackColor = [Drawing.Color]::Black
-$form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
+
+# [FIX] เปลี่ยนเป็น None เพื่อตัด Title Bar ทิ้ง (แก้ปัญหาลากได้ 100%)
+$form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::None 
 $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
-$form.MaximizeBox = $false
-$form.ControlBox = $false
-$form.Add_Load({
-    $hMenuGUI = $Win32::GetSystemMenu($form.Handle, $false)
-    if ($hMenuGUI -ne [IntPtr]::Zero) {
-        [void]$Win32::DeleteMenu($hMenuGUI, 0xF010, 0x0000)
-    }
+
+# [NEW] วาดเส้นขอบสีฟ้า (Cyan) รอบโปรแกรม เพื่อความสวยงาม (เพราะเราตัดขอบทิ้งไปแล้ว)
+$form.Add_Paint({
+    param($sender, $e)
+    $borderColor = [Drawing.Color]::Cyan
+    $borderWidth = 2
+    $e.Graphics.DrawRectangle(
+        (New-Object Drawing.Pen($borderColor, $borderWidth)), 
+        0, 0, ($form.Width - 1), ($form.Height - 1)
+    )
 })
+
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
 $global:TargetUSB = $null
 $rnd = New-Object System.Random
-# $AntiGravity = { $this.Location = New-Object Drawing.Point(($this.Location.X + $rnd.Next(-12, 13)), ($this.Location.Y + $rnd.Next(-12, 13))) }
 
 # --- [UI HEADER] ---
 $lblHeader = New-Object Windows.Forms.Label
@@ -140,6 +150,8 @@ $lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::B
 $lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
 $lblHeader.Dock = [Windows.Forms.DockStyle]::Top
 $lblHeader.Height = 40
+# ให้กด Header แล้วลากไม่ได้ (เผื่อไว้)
+$lblHeader.Add_MouseDown({ $form.Capture = $false }) 
 $form.Controls.Add($lblHeader)
 
 $cmbUSB = New-Object Windows.Forms.ComboBox
@@ -149,7 +161,7 @@ $cmbUSB.BackColor = [Drawing.Color]::DimGray; $cmbUSB.ForeColor = [Drawing.Color
 $cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
 $form.Controls.Add($cmbUSB)
 
-# [FIX] Checkbox & Copy Button
+# [FIX] Checkbox
 $cbShowAll = New-Object Windows.Forms.CheckBox
 $cbShowAll.Text = "Show All Drives"
 $cbShowAll.Font = New-Object Drawing.Font("Consolas", 9)
@@ -158,7 +170,6 @@ $cbShowAll.Location = New-Object Drawing.Point(90, 92)
 $cbShowAll.Size = New-Object Drawing.Size(200, 20)
 $form.Controls.Add($cbShowAll)
 
-# [CRITICAL] Store in script scope for stability
 $script:cbShowAll = $cbShowAll 
 
 # Copy to Drive
@@ -185,7 +196,6 @@ $form.Controls.Add($lblStatus)
 function Update-Console { param($Msg, $Color="White"); Write-Host "      > $Msg" -ForegroundColor $Color }
 
 function Refresh-USB-List {
-    # [FIX] Use $script:cbShowAll to prevent crash
     $SysDrive = $env:SystemDrive.Substring(0,1)
     $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
         if ($script:cbShowAll.Checked) {
@@ -217,7 +227,6 @@ function Refresh-USB-List {
     }
 }
 
-# [NEW] Manual Copy Function
 function Start-Manual-Copy {
     if ($global:TargetUSB -eq $null) {
         [Windows.Forms.MessageBox]::Show("Please select a target drive first!", "Error")
@@ -304,7 +313,6 @@ function Build-VMD-Process {
         if ($global:TargetUSB -eq $null) {
             Refresh-USB-List
             if ($global:TargetUSB -eq $null) {
-                 # [FIX] Use $script:Running + try/catch loop
                  if ([Windows.Forms.MessageBox]::Show("Drivers are ready in Temp!`n`nInsert USB to copy?", "Ready", "YesNo", "Question") -eq "Yes") {
                      Update-Console "Waiting for USB insertion..." "Yellow"
                      while ($global:TargetUSB -eq $null -and $script:Running) {
@@ -325,8 +333,6 @@ function Build-VMD-Process {
             Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
             Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
             Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-            # [OPTION] Keep temp files for Manual Copy later
-            # Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
             
             Update-Console "--- JOB COMPLETE ---" "Green"
             [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "Success")
@@ -379,7 +385,7 @@ Add-Btn "[ X ] Exit" 530 "Green" "EXIT" $false $true
 
 # [EVENTS]
 $cbShowAll.Add_CheckedChanged({ Refresh-USB-List })
-$btnCopy.Add_Click({ Start-Manual-Copy }) # Connect button event
+$btnCopy.Add_Click({ Start-Manual-Copy })
 
 $form.Add_KeyDown({
     if ($_.KeyCode -eq 'D1' -or $_.KeyCode -eq 'NumPad1') { Build-VMD-Process -Mode 1 }
@@ -396,7 +402,6 @@ $form.Add_FormClosed({ Close-App })
 $timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick({ Refresh-USB-List }); $timer.Start()
 Refresh-USB-List
 
-# [NEW] GitHub Link (Bottom Right)
 $lnkGit = New-Object Windows.Forms.LinkLabel
 $lnkGit.Text = "#Link Github"
 $lnkGit.LinkColor = [Drawing.Color]::Cyan
@@ -414,6 +419,3 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
-
