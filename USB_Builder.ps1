@@ -187,7 +187,9 @@ $lblStatus.Text = "Scanning for USB..."
 $lblStatus.ForeColor = [Drawing.Color]::Yellow
 $lblStatus.Font = New-Object Drawing.Font("Consolas", 10)
 $lblStatus.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
-$lblStatus.Location = New-Object Drawing.Point(0, 118); $lblStatus.Width = $WinWidth
+$lblStatus.Location = New-Object Drawing.Point(4, 118)
+$lblStatus.Size = New-Object Drawing.Size(($WinWidth - 8), 20) 
+
 $form.Controls.Add($lblStatus)
 
 # --- [FUNCTIONS] ---
@@ -418,5 +420,6 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
