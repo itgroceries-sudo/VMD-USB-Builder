@@ -132,12 +132,21 @@ $cmbUSB.BackColor = [Drawing.Color]::DimGray; $cmbUSB.ForeColor = [Drawing.Color
 $cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
 $form.Controls.Add($cmbUSB)
 
+$cbShowAll = New-Object Windows.Forms.CheckBox
+$cbShowAll.Text = "Show All Drives (NVMe / External / Fixed)"
+$cbShowAll.Font = New-Object Drawing.Font("Consolas", 9)
+$cbShowAll.ForeColor = [Drawing.Color]::Gray
+$cbShowAll.Location = New-Object Drawing.Point(90, 90)
+$cbShowAll.Size = New-Object Drawing.Size(400, 20)
+$cbShowAll.Add_CheckedChanged({ Refresh-USB-List }) # กดปุ๊บ รีเฟรชปั๊บ
+$form.Controls.Add($cbShowAll)
+
 $lblStatus = New-Object Windows.Forms.Label
 $lblStatus.Text = "Scanning for USB..."
 $lblStatus.ForeColor = [Drawing.Color]::Yellow
 $lblStatus.Font = New-Object Drawing.Font("Consolas", 10)
 $lblStatus.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
-$lblStatus.Location = New-Object Drawing.Point(0, 90); $lblStatus.Width = $WinWidth
+$lblStatus.Location = New-Object Drawing.Point(0, 115); $lblStatus.Width = $WinWidth
 $form.Controls.Add($lblStatus)
 
 # --- [FUNCTIONS] ---
@@ -145,23 +154,34 @@ $form.Controls.Add($lblStatus)
 function Update-Console { param($Msg, $Color="White"); Write-Host "      > $Msg" -ForegroundColor $Color }
 
 function Refresh-USB-List {
-    $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {$_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null} | Sort-Object DriveLetter
+    $SysDrive = $env:SystemDrive.Substring(0,1)
+    $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
+        if ($cbShowAll.Checked) {
+            ($_.DriveType -eq 'Removable' -or $_.DriveType -eq 'Fixed') -and $_.DriveLetter -ne $null -and $_.DriveLetter -ne $SysDrive
+        } else {
+            $_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null
+        }
+    } | Sort-Object DriveLetter
+
     if ($cmbUSB.Items.Count -ne $drives.Count -or $cmbUSB.Items.Count -eq 0) {
         $cmbUSB.Items.Clear()
         if ($drives) {
             foreach ($d in $drives) {
                 $SizeGB = [math]::Round($d.SizeRemaining / 1GB, 2)
-                $Label = if ($d.FriendlyName) { $d.FriendlyName } else { "USB Drive" }
+                $Label = if ($d.FriendlyName) { $d.FriendlyName } else { "Drive" }
                 [void]$cmbUSB.Items.Add("[$($d.DriveLetter):] $Label ($SizeGB GB Free)")
             }
             if ($cmbUSB.SelectedIndex -eq -1 -and $cmbUSB.Items.Count -gt 0) { $cmbUSB.SelectedIndex = 0 }
-        } else { $cmbUSB.Items.Clear(); $cmbUSB.Text = "No USB Found" }
+        } else { 
+            $cmbUSB.Items.Clear()
+            if ($cbShowAll.Checked) { $cmbUSB.Text = "No Drives Found" } else { $cmbUSB.Text = "No USB Found" }
+        }
     }
     if ($cmbUSB.SelectedIndex -ne -1) {
         $global:TargetUSB = $cmbUSB.SelectedItem.ToString().Substring(1, 2) + "\"
         $lblStatus.Text = "Target Ready: $global:TargetUSB"; $lblStatus.ForeColor = [Drawing.Color]::Lime
     } else {
-        $global:TargetUSB = $null; $lblStatus.Text = "Please insert USB Drive..."; $lblStatus.ForeColor = [Drawing.Color]::Red
+        $global:TargetUSB = $null; $lblStatus.Text = "Please select a Drive..."; $lblStatus.ForeColor = [Drawing.Color]::Red
     }
 }
 
@@ -279,13 +299,14 @@ function Add-Btn {
     $form.Controls.Add($b)
 }
 
-Add-Btn "[ 1 ] Build USB (All VMDs)" 130 "Magenta" 1
-Add-Btn "[ 2 ] Build USB (v18 Only)" 200 "Yellow" 2
-Add-Btn "[ 3 ] Build USB (v19 Only)" 270 "Yellow" 3
-Add-Btn "[ 4 ] Build USB (v20 Only)" 340 "Yellow" 4
-Add-Btn "[ B ] Go to Firmware/BIOS" 430 "Red" "BIOS" $true
-Add-Btn "[ O ] Open Target!" 510 "Cyan" "OPEN" $false $true
-Add-Btn "[ X ] Exit" 510 "Green" "EXIT" $false $true
+# [ADJUST] Shift Y +20px (130->150, 200->220, etc.)
+Add-Btn "[ 1 ] Build USB (All VMDs)" 150 "Magenta" 1
+Add-Btn "[ 2 ] Build USB (v18 Only)" 220 "Yellow" 2
+Add-Btn "[ 3 ] Build USB (v19 Only)" 290 "Yellow" 3
+Add-Btn "[ 4 ] Build USB (v20 Only)" 360 "Yellow" 4
+Add-Btn "[ B ] Go to Firmware/BIOS" 450 "Red" "BIOS" $true
+Add-Btn "[ O ] Open Target!" 530 "Cyan" "OPEN" $false $true
+Add-Btn "[ X ] Exit" 530 "Green" "EXIT" $false $true
 
 # --- [EVENTS] ---
 $form.Add_KeyDown({
@@ -310,6 +331,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
