@@ -1,14 +1,13 @@
 # 🚀 VMD Driver Cloud Installer & USB Builder
 ### *Powered by IT Groceries Shop*
 
-![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-16.5%20Stable-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-2.0%20Build-16.8%20Stable-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
 
 **ทางออกสำหรับปัญหา "มองไม่เห็น SSD" (No Drives Found) ระหว่างลง Windows**
 ทำงานอัตโนมัติ 100% | อัจฉริยะ | ไดรเวอร์สดใหม่เสมอ
 
 ---
-
-![VMD USB Builder](https://github.com/user-attachments/assets/d2b11cfd-27cf-4c4c-bbba-f9bab20d9e0e)
+![VMD USB Builder](https://github.com/user-attachments/assets/b0b9e85a-37b4-497c-8e61-0951b7ca22c5)
 
 ---
 
@@ -124,6 +123,7 @@
 </details>
 
 ---
+
 
 
 
