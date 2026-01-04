@@ -211,7 +211,9 @@ function Refresh-USB-List {
         if ($drives) {
             foreach ($d in $drives) {
                 $SizeGB = [math]::Round($d.SizeRemaining / 1GB, 2)
-                $Label = if ($d.FriendlyName) { $d.FriendlyName } else { "Drive" }
+                
+                $Label = if ($d.FileSystemLabel) { $d.FileSystemLabel } else { "USB Drive" }
+                
                 [void]$cmbUSB.Items.Add("[$($d.DriveLetter):] $Label ($SizeGB GB Free)")
             }
             if ($cmbUSB.SelectedIndex -eq -1 -and $cmbUSB.Items.Count -gt 0) { $cmbUSB.SelectedIndex = 0 }
@@ -420,6 +422,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
