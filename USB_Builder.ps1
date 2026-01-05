@@ -2,13 +2,13 @@
 @powershell -noprofile -Window Hidden -c "$param='%*';$ScriptPath='%~f0';iex((Get-Content('%~f0') -Raw))"&exit/b
 #>
 
-# VMD USB Builder v2.0 (Clean & Fixed Border)
+# VMD USB Builder v2.0 (Restored & Smart)
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $AppVer   = "2.0"
 $AppBuild = "16.9"
-$DateStr = Get-Date -Format "dd-MM-yyyy"
+$DateStr  = Get-Date -Format "dd-MM-yyyy"
 $WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]"
 $ConsoleTitle = "IT GROCERIES CONSOLE"
 
@@ -101,31 +101,20 @@ $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
 
-# --- [FIXED] PAINT EVENT FOR BORDER ---
+# --- [RESTORED] ORIGINAL PAINT EVENT (Perfect Border) ---
 $form.Add_Paint({
     param($sender, $e)
-    $Control = $sender
-    $PenColor = [System.Drawing.Color]::Cyan
-    $PenWidth = 2
+    $borderColor = [Drawing.Color]::Cyan
+    $borderWidth = 2
     
-    # Create Pen
-    $Pen = New-Object System.Drawing.Pen($PenColor, $PenWidth)
+    $pen = New-Object Drawing.Pen($borderColor, $borderWidth)
+    $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
     
-    # Calculate Rectangle (Inset by half width to ensure border is inside)
-    $Rect = New-Object System.Drawing.Rectangle(
-        [int]($PenWidth / 2), 
-        [int]($PenWidth / 2), 
-        [int]($Control.ClientSize.Width - $PenWidth), 
-        [int]($Control.ClientSize.Height - $PenWidth)
-    )
-    
-    # Draw Rectangle
-    $e.Graphics.DrawRectangle($Pen, $Rect)
-    
-    # Dispose Pen
-    $Pen.Dispose()
+    $rect = $form.ClientRectangle
+    $e.Graphics.DrawRectangle($pen, $rect)
+    $pen.Dispose()
 })
-# --------------------------------------
+# --------------------------------------------------------
 
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
@@ -240,11 +229,11 @@ function Start-Manual-Copy {
                 }
             }
             Update-Console "--- COPY COMPLETE ---" "Green"
-            [Windows.Forms.MessageBox]::Show("Files copied successfully.", "Success")
+            [Windows.Forms.MessageBox]::Show("Files copied successfully to ALL partitions.", "Success")
         } catch {
             Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
             Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-            [Windows.Forms.MessageBox]::Show("Fallback copy completed.", "Warning")
+            [Windows.Forms.MessageBox]::Show("Fallback copy completed (Single Drive).", "Warning")
         }
     }
 }
@@ -418,7 +407,3 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
-
-
