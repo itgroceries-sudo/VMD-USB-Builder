@@ -2,7 +2,7 @@
 @powershell -noprofile -Window Hidden -c "$param='%*';$ScriptPath='%~f0';iex((Get-Content('%~f0') -Raw))"&exit/b
 #>
 
-# VMD USB Builder v2.0 (Clean Version)
+# VMD USB Builder v2.0 (Clean & Fixed Border)
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -101,6 +101,7 @@ $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
 
+# --- [FIXED] PAINT EVENT FOR BORDER ---
 $form.Add_Paint({
     param($sender, $e)
     $Control = $sender
@@ -121,9 +122,10 @@ $form.Add_Paint({
     # Draw Rectangle
     $e.Graphics.DrawRectangle($Pen, $Rect)
     
-    # Dispose Pen to free resources
+    # Dispose Pen
     $Pen.Dispose()
 })
+# --------------------------------------
 
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
@@ -416,6 +418,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
