@@ -241,18 +241,33 @@ function Start-Manual-Copy {
         return
     }
 
-    $ans = [Windows.Forms.MessageBox]::Show("Copy files to: $global:TargetUSB ?", "Confirm Copy", "YesNo", "Question")
+    $ans = [Windows.Forms.MessageBox]::Show("Copy files to USB Disk associated with: $global:TargetUSB ?", "Confirm Copy", "YesNo", "Question")
     if ($ans -eq "Yes") {
-        Update-Console "Manual Copying to $($global:TargetUSB)..." "Cyan"
-        
-        # [ITG] Copy .xml to USB Root (Always)
-        Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
-        
-        # [ITG] Check if target is a VMD Support Folder or USB Root
-        Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-        
-        Update-Console "--- COPY COMPLETE ---" "Green"
-        [Windows.Forms.MessageBox]::Show("Files copied successfully to $global:TargetUSB", "Success")
+        # [ITG] SMART COPY LOGIC START
+        $SelectedDriveLetter = $global:TargetUSB.Substring(0,1) # ดึงตัว G ออกมา
+        try {
+            $DiskNum = (Get-Partition -DriveLetter $SelectedDriveLetter).DiskNumber
+            $AllPartitions = Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 }
+            
+            foreach ($Part in $AllPartitions) {
+                $CurrentTarget = "$($Part.DriveLetter):\"
+                Update-Console "Target Detected: $CurrentTarget" "Yellow"
+                Update-Console "Copying .xml to $CurrentTarget..." "Cyan"
+                Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $CurrentTarget -Force
+                $VolSize = (Get-Volume -DriveLetter $Part.DriveLetter).SizeRemaining
+                if ($VolSize -gt 2GB) { 
+                     Update-Console "Copying VMD Drivers to Main Partition ($CurrentTarget)..." "Cyan"
+                     Copy-Item -Path $SupportDir -Destination $CurrentTarget -Recurse -Force
+                }
+            }
+            Update-Console "--- COPY COMPLETE (ALL PARTITIONS) ---" "Green"
+            [Windows.Forms.MessageBox]::Show("Success! Files copied to all partitions on the USB.", "Success")
+            
+        } catch {
+            Show_Error "Smart Copy Failed. Falling back to single drive copy."
+            Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+            Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+        }
     }
 }
 
@@ -338,22 +353,35 @@ function Build-VMD-Process {
             }
         }
 if ($global:TargetUSB -ne $null) {
-            Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
-            
-            # [ITG] Copy Autounattend.xml to Drive Root
-            Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
-            
-            # [ITG] Copy VMD Drivers & Installer
-            Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+            # [ITG] SMART AUTO-COPY LOGIC
+            $SelectedDriveLetter = $global:TargetUSB.Substring(0,1)
+            try {
+                $DiskNum = (Get-Partition -DriveLetter $SelectedDriveLetter).DiskNumber
+                $AllPartitions = Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 }
+                
+                foreach ($Part in $AllPartitions) {
+                    $CurrentTarget = "$($Part.DriveLetter):\"
+                    
+                    # Copy XML to ALL
+                    Update-Console "Syncing XML -> $CurrentTarget" "Cyan"
+                    Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $CurrentTarget -Force
+                    
+                    # Copy VMD Only to Large Partition (Assuming it's Win Setup)
+                    $VolSize = (Get-Volume -DriveLetter $Part.DriveLetter).SizeRemaining
+                    if ($VolSize -gt 2GB) {
+                        Update-Console "Syncing Drivers -> $CurrentTarget" "Cyan"
+                        Copy-Item -Path $SupportDir -Destination $CurrentTarget -Recurse -Force
+                    }
+                }
+            } catch {
+                # Fallback
+                Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+                Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+            }
             
             Update-Console "--- JOB COMPLETE ---" "Green"
-            [Windows.Forms.MessageBox]::Show("Complete! Files saved to $($global:TargetUSB)", "Success")
+            [Windows.Forms.MessageBox]::Show("Complete! Files saved to USB.", "Success")
         }
-    } else {
-        Update-Console "FAILED: No drivers found." "Red"
-        [Windows.Forms.MessageBox]::Show("Extraction Failed.", "Error")
-    }
-}
 
 # --- [BUTTONS] ---
 function Add-Btn {
@@ -431,6 +459,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
