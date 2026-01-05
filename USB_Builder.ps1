@@ -244,8 +244,13 @@ function Start-Manual-Copy {
     $ans = [Windows.Forms.MessageBox]::Show("Copy files to: $global:TargetUSB ?", "Confirm Copy", "YesNo", "Question")
     if ($ans -eq "Yes") {
         Update-Console "Manual Copying to $($global:TargetUSB)..." "Cyan"
+        
+        # [ITG] Copy .xml to USB Root (Always)
         Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+        
+        # [ITG] Check if target is a VMD Support Folder or USB Root
         Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
+        
         Update-Console "--- COPY COMPLETE ---" "Green"
         [Windows.Forms.MessageBox]::Show("Files copied successfully to $global:TargetUSB", "Success")
     }
@@ -332,9 +337,13 @@ function Build-VMD-Process {
                  }
             }
         }
-        if ($global:TargetUSB -ne $null) {
+if ($global:TargetUSB -ne $null) {
             Update-Console "Copying to $($global:TargetUSB)..." "Cyan"
+            
+            # [ITG] Copy Autounattend.xml to Drive Root
             Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
+            
+            # [ITG] Copy VMD Drivers & Installer
             Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
             
             Update-Console "--- JOB COMPLETE ---" "Green"
@@ -422,6 +431,7 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
 
 
