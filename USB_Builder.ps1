@@ -108,6 +108,18 @@ $form.Add_Paint({
     $e.Graphics.DrawRectangle($pen, $form.ClientRectangle)
 })
 
+$form.Add_Paint({
+    param($sender, $e)
+    $borderColor = [Drawing.Color]::Cyan
+    $borderWidth = 2
+    
+    $pen = New-Object Drawing.Pen($borderColor, $borderWidth)
+    $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
+    
+    $rect = $form.ClientRectangle
+    $e.Graphics.DrawRectangle($pen, $rect)
+})
+
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
 $global:TargetUSB = $null
@@ -399,3 +411,4 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
