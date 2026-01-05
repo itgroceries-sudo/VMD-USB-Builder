@@ -103,21 +103,26 @@ $form.KeyPreview = $true
 
 $form.Add_Paint({
     param($sender, $e)
-    $pen = New-Object Drawing.Pen([Drawing.Color]::Cyan, 2)
-    $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
-    $e.Graphics.DrawRectangle($pen, $form.ClientRectangle)
-})
-
-$form.Add_Paint({
-    param($sender, $e)
-    $borderColor = [Drawing.Color]::Cyan
-    $borderWidth = 2
+    $Control = $sender
+    $PenColor = [System.Drawing.Color]::Cyan
+    $PenWidth = 2
     
-    $pen = New-Object Drawing.Pen($borderColor, $borderWidth)
-    $pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
+    # Create Pen
+    $Pen = New-Object System.Drawing.Pen($PenColor, $PenWidth)
     
-    $rect = $form.ClientRectangle
-    $e.Graphics.DrawRectangle($pen, $rect)
+    # Calculate Rectangle (Inset by half width to ensure border is inside)
+    $Rect = New-Object System.Drawing.Rectangle(
+        [int]($PenWidth / 2), 
+        [int]($PenWidth / 2), 
+        [int]($Control.ClientSize.Width - $PenWidth), 
+        [int]($Control.ClientSize.Height - $PenWidth)
+    )
+    
+    # Draw Rectangle
+    $e.Graphics.DrawRectangle($Pen, $Rect)
+    
+    # Dispose Pen to free resources
+    $Pen.Dispose()
 })
 
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
@@ -411,4 +416,5 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
+
 
