@@ -2,12 +2,15 @@
 @powershell -noprofile -Window Hidden -c "$param='%*';$ScriptPath='%~f0';iex((Get-Content('%~f0') -Raw))"&exit/b
 #>
 
-# VMD USB Builder v2.0 (Restored & Smart)
+# =========================================================
+#  VMD USB BUILDER (FINAL STABLE RESTORED)
+# =========================================================
+
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $AppVer   = "2.0"
-$AppBuild = "16.9"
+$AppBuild = "16.9" # Updated build number only
 $DateStr  = Get-Date -Format "dd-MM-yyyy"
 $WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]"
 $ConsoleTitle = "IT GROCERIES CONSOLE"
@@ -27,6 +30,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     exit
 }
 
+# --- Win32 API ---
 $Win32 = Add-Type -MemberDefinition @"
     [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
@@ -36,6 +40,7 @@ $Win32 = Add-Type -MemberDefinition @"
     [DllImport("user32.dll")] public static extern bool DeleteMenu(IntPtr hMenu, uint uPosition, uint uFlags);
 "@ -Name "Win32Utils" -Namespace Win32 -PassThru
 
+# --- Config ---
 $GitHubRaw   = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main"
 $WorkDir     = "$env:TEMP\ITG_VMD_Build"
 $SupportDir  = "$WorkDir\Support"
@@ -55,6 +60,7 @@ try {
     Invoke-WebRequest "https://itgroceries.blogspot.com/favicon.ico" -OutFile $IconITG -UseBasicParsing
 } catch {}
 
+# Console Position
 $ConsoleHandle = $Win32::GetConsoleWindow()
 $Host.UI.RawUI.WindowTitle = "$ConsoleTitle"
 
@@ -92,6 +98,7 @@ Write-Host "      ==================================================" -Foregroun
 Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
 Write-Host "      > Initializing..."
 
+# WinForm Creation
 $form = New-Object Windows.Forms.Form
 $form.Text = "$WindowTitle"
 $form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)
@@ -101,7 +108,7 @@ $form.StartPosition = [Windows.Forms.FormStartPosition]::Manual
 $form.Location = New-Object Drawing.Point($RightX, $CenterY)
 $form.KeyPreview = $true
 
-# --- [RESTORED] ORIGINAL PAINT EVENT (Perfect Border) ---
+# [RESTORED] Original Border Logic
 $form.Add_Paint({
     param($sender, $e)
     $borderColor = [Drawing.Color]::Cyan
@@ -114,7 +121,6 @@ $form.Add_Paint({
     $e.Graphics.DrawRectangle($pen, $rect)
     $pen.Dispose()
 })
-# --------------------------------------------------------
 
 if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
 
@@ -231,6 +237,7 @@ function Start-Manual-Copy {
             Update-Console "--- COPY COMPLETE ---" "Green"
             [Windows.Forms.MessageBox]::Show("Files copied successfully to ALL partitions.", "Success")
         } catch {
+            # Fallback
             Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
             Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
             [Windows.Forms.MessageBox]::Show("Fallback copy completed (Single Drive).", "Warning")
