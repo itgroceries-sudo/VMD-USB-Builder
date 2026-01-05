@@ -352,7 +352,7 @@ function Build-VMD-Process {
                  }
             }
         }
-if ($global:TargetUSB -ne $null) {
+        if ($global:TargetUSB -ne $null) {
             # [ITG] SMART AUTO-COPY LOGIC
             $SelectedDriveLetter = $global:TargetUSB.Substring(0,1)
             try {
@@ -382,6 +382,11 @@ if ($global:TargetUSB -ne $null) {
             Update-Console "--- JOB COMPLETE ---" "Green"
             [Windows.Forms.MessageBox]::Show("Complete! Files saved to USB.", "Success")
         }
+    } else {
+        Update-Console "FAILED: No drivers found." "Red"
+        [Windows.Forms.MessageBox]::Show("Extraction Failed.", "Error")
+    }
+}
 
 # --- [BUTTONS] ---
 function Add-Btn {
@@ -459,9 +464,3 @@ $form.Controls.Add($footer)
 
 [void]$form.ShowDialog()
 Close-App
-
-
-
-
-
-
