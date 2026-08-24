@@ -39,7 +39,40 @@ set "VER=V17.0.0"
 set "DATE_VAL=2025-11-28"
 set "CURRENT_VER=!VER! (!DATE_VAL!)"
 
+:: =============================================================================
+:: [ Lvl 99 ] AUTO / SILENT MODE HANDLER ( %1 )
+:: =============================================================================
+set "SILENT_MODE=0"
+if /i "%~1"=="/SILENT" (
+    set "SILENT_MODE=1"
+    goto :AUTO_INJECT
+)
+
 goto :MAIN_MENU
+
+:: -----------------------------------------------------------------------------
+:: [ AUTO_INJECT ] ระบบฉีดไดรเวอร์อัตโนมัติ (วิ่งทะลุเมนูหลัก)
+:: -----------------------------------------------------------------------------
+:AUTO_INJECT
+:: 1. สแกนฮาร์ดแวร์ก่อนเป็นอันดับแรก
+CALL :SCAN_VMD_HARDWARE
+
+:: 2. ถ้าไม่เจอ VMD ให้จบการทำงานเงียบๆ (ไม่คาย Error ปล่อยให้ WinSetup ทำงานต่อ)
+if not defined DETECTED_GEN exit
+
+:: 3. จับคู่ Gen กับ Folder แบบ Lvl 99 (ใช้ String Replacement แทน find เพื่อความเร็วแสง)
+set "AUTO_FOLDER="
+if not "!DETECTED_GEN:11th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v18"
+if not "!DETECTED_GEN:12th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v19"
+if not "!DETECTED_GEN:13th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v20"
+if not "!DETECTED_GEN:14th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v20"
+
+:: 4. ถ้าแมตช์เจอ ให้ฉีดไดรเวอร์แล้วชิ่งปิดหน้าต่างทันที!
+if defined AUTO_FOLDER (
+    call :InstallDriver "!AUTO_FOLDER!"
+)
+exit
+:: =============================================================================
 
 :: -----------------------------------------------------------------------------
 :: 5. MAIN MENU
@@ -194,14 +227,15 @@ echo !White!--------------------------------------------------------------------
 
 if not exist "!TARGET_DIR!\" (
     echo !Red![ERROR] Folder not found: "!TARGET_DIR!"!Reset!
-    pause
+    if "!SILENT_MODE!"=="0" pause
+    if "!SILENT_MODE!"=="1" exit
     EXIT /B
 )
 
 pushd "!TARGET_DIR!"
 if errorlevel 1 (
     echo !Red![ERROR] Cannot access directory.!Reset!
-    pause
+    if "!SILENT_MODE!"=="0" pause
     EXIT /B
 )
 
@@ -216,6 +250,9 @@ for /R %%f in (*.inf) do (
     )
 )
 popd
+
+:: [ Thai ] ตัดจบตรงนี้ถ้าเป็นโหมด SILENT (ไม่ต้องโชว์ดิสก์ ไม่ต้องรอ กดออกเงียบๆ)
+if "!SILENT_MODE!"=="1" EXIT
 
 :: Check Disk 
 echo.
@@ -261,7 +298,7 @@ EXIT /B
     echo.
     echo !Green!Script Finished!Reset!
     ping 127.0.0.1 -n 4 >nul
-    exit /b
+    exit
 
 :: -----------------------------------------------------------------------------
 :: 8. BOOT MODE CHECK SUBROUTINES
@@ -303,19 +340,20 @@ goto :eof
 :SCAN_VMD_HARDWARE
     set "DETECTED_GEN="
     
+    :: [ Lvl 99 Optimization ] เพิ่ม /k เพื่อความเร็วระดับแสง!
     :: 11th Gen VMD (DEV_9A0B)
-    reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /f "VEN_8086&DEV_9A0B" >nul 2>&1
+    reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /k /f "VEN_8086&DEV_9A0B" >nul 2>&1
     if !errorlevel! equ 0 set "DETECTED_GEN=Intel 11th Gen (Tiger Lake)"
 
     :: 12th Gen VMD (DEV_467F)
     if not defined DETECTED_GEN (
-        reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /f "VEN_8086&DEV_467F" >nul 2>&1
+        reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /k /f "VEN_8086&DEV_467F" >nul 2>&1
         if !errorlevel! equ 0 set "DETECTED_GEN=Intel 12th Gen (Alder Lake)"
     )
 
     :: 13th/14th Gen VMD (DEV_A77F)
     if not defined DETECTED_GEN (
-        reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /f "VEN_8086&DEV_A77F" >nul 2>&1
+        reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /k /f "VEN_8086&DEV_A77F" >nul 2>&1
         if !errorlevel! equ 0 set "DETECTED_GEN=Intel 13th/14th Gen (Raptor Lake)"
     )
     
@@ -367,4 +405,3 @@ if !DISK_COUNT! GTR 3 (
 )
 
 goto :EOF
-)
