@@ -4,7 +4,7 @@
 
 # =========================================================
 #  VMD USB Builder by IT Groceries Shop
-#  Version: 2.1 (Build 17.1 Smart-Copy + VMD v21)
+#  Version: 2.1 (Build 17.2 Smart-Copy + VMD v21)
 # =========================================================
 
 $ErrorActionPreference = 'SilentlyContinue';
@@ -12,7 +12,7 @@ $ErrorActionPreference = 'SilentlyContinue';
 
 # --- [VERSION CONTROL] ---
 $AppVer   = "2.1";
-$AppBuild = "17.1 Smart";
+$AppBuild = "17.2 Smart";
 $AppDate  = "12-11-2026";
 
 # [DATE CONFIG] Get Current Date
@@ -21,7 +21,7 @@ $DateStr = Get-Date -Format "dd-MM-yyyy";
 $WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]";
 $ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]";
 
-# --- [SELF-SAVE & ADMIN CHECK (FIXED)] ---
+# --- [SELF-SAVE & ADMIN CHECK] ---
 $CurrentScript = $PSCommandPath;
 if (-not $CurrentScript) {
     $CurrentScript = $ScriptPath;
@@ -30,7 +30,6 @@ if (-not $CurrentScript) {
 $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator);
 
 if (-not $CurrentScript) {
-    # ถ้ารันผ่าน iex(irm ...) ให้เซฟโค้ดจาก RAM ลง Temp โดยตรง ไม่ต้องดาวน์โหลดซ้ำ
     $TempScript = "$env:TEMP\USB_Builder.ps1";
     $MyInvocation.MyCommand.ScriptBlock.ToString() | Set-Content -Path $TempScript -Encoding UTF8 -Force;
     if (-not $IsAdmin) {
@@ -60,10 +59,8 @@ $WorkDir     = "$env:TEMP\ITG_VMD_Build";
 $SupportDir  = "$WorkDir\Support";
 $script:Running = $true;
 
-# [ICONS]
-$IconGoogle  = "$env:TEMP\Google.ico";
+# [ICONS] (โหลดเฉพาะ ITG สำหรับใช้ทั้งคู่)
 $IconITG     = "$env:TEMP\ITG.ico";
-$UrlGoogle   = "https://www.google.com/favicon.ico";
 $UrlITG      = "https://itgroceries.blogspot.com/favicon.ico";
 
 # [INTEL DRIVERS - VMD v18 ถึง v21]
@@ -77,7 +74,6 @@ Add-Type -AssemblyName System.Windows.Forms;
 Add-Type -AssemblyName System.Drawing;
 
 try {
-    Invoke-WebRequest -Uri $UrlGoogle -OutFile $IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing;
     Invoke-WebRequest -Uri $UrlITG -OutFile $IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing;
 } catch {}
 
@@ -88,13 +84,14 @@ $Host.UI.RawUI.WindowTitle = "$ConsoleTitle";
 $ScreenWidth  = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width;
 $ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height;
 $WinWidth     = 650;
-$WinHeight    = 760;
+$WinHeight    = 700;
 $LeftX        = ($ScreenWidth / 2) - $WinWidth;
 $RightX       = ($ScreenWidth / 2);
 $CenterY      = ($ScreenHeight / 2) - ($WinHeight / 2);
 
-if (Test-Path $IconGoogle) {
-    $hIcon = $Win32::LoadImage([IntPtr]::Zero, $IconGoogle, 1, 0, 0, 0x10);
+# โหลดไอคอน ITG ใส่ Console Window
+if (Test-Path $IconITG) {
+    $hIcon = $Win32::LoadImage([IntPtr]::Zero, $IconITG, 1, 0, 0, 0x10);
     if ($hIcon -ne [IntPtr]::Zero) { 
         [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0, $hIcon); 
         [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1, $hIcon); 
@@ -169,7 +166,6 @@ $cmbUSB.ForeColor = [Drawing.Color]::White;
 $cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList;
 $form.Controls.Add($cmbUSB);
 
-# [FIX] Checkbox
 $cbShowAll = New-Object Windows.Forms.CheckBox;
 $cbShowAll.Text = "Show All Drives";
 $cbShowAll.Font = New-Object Drawing.Font("Consolas", 9);
@@ -180,7 +176,6 @@ $form.Controls.Add($cbShowAll);
 
 $script:cbShowAll = $cbShowAll;
 
-# Copy to Drive
 $btnCopy = New-Object Windows.Forms.Button;
 $btnCopy.Text = "Copy to Drive >";
 $btnCopy.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold);
@@ -206,17 +201,17 @@ function Update-Console { param($Msg, $Color="White"); Write-Host "      > $Msg"
 
 function Refresh-USB-List {
     $SysDrive = $env:SystemDrive.Substring(0,1);
-    $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
+    $drives = @(Get-Volume -ErrorAction SilentlyContinue | Where-Object {
         if ($script:cbShowAll.Checked) {
             ($_.DriveType -eq 'Removable' -or $_.DriveType -eq 'Fixed') -and $_.DriveLetter -ne $null -and $_.DriveLetter -ne $SysDrive
         } else {
             $_.DriveType -eq 'Removable' -and $_.DriveLetter -ne $null
         }
-    } | Sort-Object DriveLetter;
+    } | Sort-Object DriveLetter);
 
     if ($cmbUSB.Items.Count -ne $drives.Count -or $cmbUSB.Items.Count -eq 0) {
         $cmbUSB.Items.Clear();
-        if ($drives) {
+        if ($drives.Count -gt 0) {
             foreach ($d in $drives) {
                 $SizeGB = [math]::Round($d.SizeRemaining / 1GB, 2);
                 $Label = if ($d.FileSystemLabel) { $d.FileSystemLabel } else { "USB Drive" };
@@ -255,7 +250,7 @@ function Start-Manual-Copy {
         $SelectedDriveLetter = $global:TargetUSB.Substring(0,1);
         try {
             $DiskNum = (Get-Partition -DriveLetter $SelectedDriveLetter).DiskNumber;
-            $AllPartitions = Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 };
+            $AllPartitions = @(Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 });
             
             foreach ($Part in $AllPartitions) {
                 $CurrentTarget = "$($Part.DriveLetter):\";
@@ -314,16 +309,35 @@ function Get-And-Extract-IntelEXE {
     catch { Update-Console "Download Failed!" "Red"; return; }
     
     if (Test-Path $ExePath) {
-        Update-Console "Extracting drivers..." "Gray";
+        Update-Console "Extracting drivers (Please wait)..." "Gray";
         try {
-            Start-Process -FilePath $ExePath -ArgumentList "-extractdrivers `"$ExtractPath`"" -Wait -PassThru -WindowStyle Hidden;
-            $InfFile = Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStorVD.inf" | Select-Object -First 1;
-            if ($InfFile) {
+            # สั่งแตกไฟล์และรอ (แก้บั๊ก Setup.exe ชอบคืนค่าไวเกินไปจนไฟล์ยังแตกไม่เสร็จ)
+            Start-Process -FilePath $ExePath -ArgumentList "-extractdrivers `"$ExtractPath`"" -Wait -WindowStyle Hidden;
+            
+            $timeout = 15;
+            while ($timeout -gt 0) {
+                $InfFiles = @(Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStor*.inf" -ErrorAction SilentlyContinue);
+                if ($InfFiles.Count -gt 0) {
+                    Start-Sleep -Seconds 2; 
+                    break;
+                }
+                Start-Sleep -Seconds 1;
+                $timeout--;
+            }
+
+            $InfFiles = @(Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStor*.inf" -ErrorAction SilentlyContinue);
+            if ($InfFiles.Count -gt 0) {
+                # กรองหาไฟล์ที่มีคำว่า VMD อยู่ในพาร์ทก่อน ถ้าไม่มีค่อยดึงตัวแรกสุด (รองรับความต่างของ v21)
+                $InfFile = $InfFiles | Where-Object { $_.DirectoryName -match "VMD" } | Select-Object -First 1;
+                if (-not $InfFile) { $InfFile = $InfFiles[0]; }
+                
                 $FinalDest = "$SupportDir\$DestName";
                 if (!(Test-Path $FinalDest)) { New-Item -ItemType Directory -Path $FinalDest | Out-Null; }
                 Copy-Item -Path "$($InfFile.Directory.FullName)\*" -Destination $FinalDest -Recurse -Force;
                 Update-Console "SUCCESS: $DestName Ready." "Green";
-            } else { Update-Console "iaStorVD.inf NOT FOUND." "Red"; }
+            } else { 
+                Update-Console "iaStor*.inf NOT FOUND." "Red"; 
+            }
             Remove-Item $ExePath -Force -ErrorAction SilentlyContinue;
             Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue;
         } catch { Update-Console "Extraction Error." "Red"; }
@@ -371,7 +385,7 @@ function Build-VMD-Process {
             $SelectedDriveLetter = $global:TargetUSB.Substring(0,1);
             try {
                 $DiskNum = (Get-Partition -DriveLetter $SelectedDriveLetter).DiskNumber;
-                $AllPartitions = Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 };
+                $AllPartitions = @(Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 });
                 
                 foreach ($Part in $AllPartitions) {
                     $CurrentTarget = "$($Part.DriveLetter):\";
@@ -473,7 +487,7 @@ $lnkGit.LinkColor = [Drawing.Color]::Cyan;
 $lnkGit.ActiveLinkColor = [Drawing.Color]::Yellow;
 $lnkGit.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold);
 $lnkGit.AutoSize = $true;
-$lnkGit.Location = New-Object Drawing.Point(530, 695);
+$lnkGit.Location = New-Object Drawing.Point(530, 635);
 $lnkGit.Add_LinkClicked({ Start-Process "https://github.com/itgroceries-sudo/VMD-USB-Builder/tree/main"; });
 $form.Controls.Add($lnkGit);
 
