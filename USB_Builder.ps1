@@ -62,10 +62,11 @@ $IconITG     = "$env:TEMP\ITG.ico"
 $UrlGoogle   = "https://www.google.com/favicon.ico"
 $UrlITG      = "https://itgroceries.blogspot.com/favicon.ico"
 
-# [INTEL DRIVERS]
+# [INTEL DRIVERS - VMD v18 ถึง v21]
 $URL_V18 = "https://downloadmirror.intel.com/773229/SetupRST.exe"
 $URL_V19 = "https://downloadmirror.intel.com/849934/SetupRST.exe"
 $URL_V20 = "https://downloadmirror.intel.com/865363/SetupRST.exe"
+$URL_V21 = "https://downloadmirror.intel.com/920457/SetupRST.exe"
 
 # --- [SETUP] ---
 Add-Type -AssemblyName System.Windows.Forms
