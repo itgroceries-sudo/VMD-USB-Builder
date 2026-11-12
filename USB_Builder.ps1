@@ -7,430 +7,169 @@
 #  Version: 2.1 (Build 17.0 Smart-Copy + VMD v21)
 # =========================================================
 
-$ErrorActionPreference = 'SilentlyContinue'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$ErrorActionPreference = 'SilentlyContinue';
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 
 # --- [VERSION CONTROL] ---
-$AppVer   = "2.1"
-$AppBuild = "17.0 Smart"
-$AppDate  = "12-11-2026"
+$AppVer   = "2.1";
+$AppBuild = "17.0 Smart";
+$AppDate  = "12-11-2026";
 
 # [DATE CONFIG] Get Current Date
-$DateStr = Get-Date -Format "dd-MM-yyyy"
+$DateStr = Get-Date -Format "dd-MM-yyyy";
 
-$WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]"
-$ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]"
+$WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]";
+$ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]";
 
 # --- [SELF-DOWNLOAD & ADMIN CHECK] ---
-$CurrentScript =$PSCommandPath
+$CurrentScript =$PSCommandPath;
 if (-not $CurrentScript) {
     # Web-Launch Mode
-    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1"
-    $TempScript = "$env:TEMP\USB_Builder.ps1"
-    Write-Host "Downloading script..." -ForegroundColor Cyan
-    try { Invoke-WebRequest -Uri $WebSource -OutFile$TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop } 
-    catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit }
-    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs
-    exit
+    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1";
+    $TempScript = "$env:TEMP\USB_Builder.ps1";
+    Write-Host "Downloading script..." -ForegroundColor Cyan;
+    try { Invoke-WebRequest -Uri $WebSource -OutFile$TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop; } 
+    catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit; }
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs;
+    exit;
 }
 
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CurrentScript`"" -Verb RunAs
-    exit
+    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CurrentScript`"" -Verb RunAs;
+    exit;
 }
 
 # --- [WIN32 API] ---
-$Win32 = Add-Type -MemberDefinition @"
+$Win32Def = '
     [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
     [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] public static extern IntPtr LoadImage(IntPtr hinst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
-    
     [DllImport("user32.dll")] public static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
     [DllImport("user32.dll")] public static extern bool DeleteMenu(IntPtr hMenu, uint uPosition, uint uFlags);
-"@ -Name "Win32Utils" -Namespace Win32 -PassThru
+';
+$Win32 = Add-Type -MemberDefinition$Win32Def -Name "Win32Utils" -Namespace Win32 -PassThru;
 
 # --- [CONFIG] ---
-$GitHubRaw   = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main"
-$WorkDir     = "$env:TEMP\ITG_VMD_Build"
-$SupportDir  = "$WorkDir\Support"
-$script:Running =$true
+$GitHubRaw   = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main";
+$WorkDir     = "$env:TEMP\ITG_VMD_Build";
+$SupportDir  = "$WorkDir\Support";
+$script:Running =$true;
 
 # [ICONS]
-$IconGoogle  = "$env:TEMP\Google.ico"
-$IconITG     = "$env:TEMP\ITG.ico"
-$UrlGoogle   = "https://www.google.com/favicon.ico"
-$UrlITG      = "https://itgroceries.blogspot.com/favicon.ico"
+$IconGoogle  = "$env:TEMP\Google.ico";
+$IconITG     = "$env:TEMP\ITG.ico";
+$UrlGoogle   = "https://www.google.com/favicon.ico";
+$UrlITG      = "https://itgroceries.blogspot.com/favicon.ico";
 
 # [INTEL DRIVERS - VMD v18 ถึง v21]
-$URL_V18 = "https://downloadmirror.intel.com/773229/SetupRST.exe"
-$URL_V19 = "https://downloadmirror.intel.com/849934/SetupRST.exe"
-$URL_V20 = "https://downloadmirror.intel.com/865363/SetupRST.exe"
-$URL_V21 = "https://downloadmirror.intel.com/920457/SetupRST.exe"
+$URL_V18 = "https://downloadmirror.intel.com/773229/SetupRST.exe";
+$URL_V19 = "https://downloadmirror.intel.com/849934/SetupRST.exe";
+$URL_V20 = "https://downloadmirror.intel.com/865363/SetupRST.exe";
+$URL_V21 = "https://downloadmirror.intel.com/920457/SetupRST.exe";
 
 # --- [SETUP] ---
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Windows.Forms;
+Add-Type -AssemblyName System.Drawing;
 
 try {
-    Invoke-WebRequest -Uri $UrlGoogle -OutFile$IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing
-    Invoke-WebRequest -Uri $UrlITG -OutFile$IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing
+    Invoke-WebRequest -Uri $UrlGoogle -OutFile$IconGoogle -UserAgent "Mozilla/5.0" -UseBasicParsing;
+    Invoke-WebRequest -Uri $UrlITG -OutFile$IconITG -UserAgent "Mozilla/5.0" -UseBasicParsing;
 } catch {}
 
 # Console Setup
-$ConsoleHandle =$Win32::GetConsoleWindow()
-$Host.UI.RawUI.WindowTitle = "$ConsoleTitle"
+$ConsoleHandle =$Win32::GetConsoleWindow();
+$Host.UI.RawUI.WindowTitle = "$ConsoleTitle";
 
-$ScreenWidth = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width
-$ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
-$WinWidth = 650$WinHeight = 760
-$LeftX = ($ScreenWidth / 2) - $WinWidth$RightX = ($ScreenWidth / 2)$CenterY = ($ScreenHeight / 2) - ($WinHeight / 2)
+$ScreenWidth  = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Width;
+$ScreenHeight = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height;
+$WinWidth     = 650;
+$WinHeight    = 760;
+$LeftX        = ($ScreenWidth / 2) -$WinWidth;
+$RightX       = ($ScreenWidth / 2);$CenterY      = ($ScreenHeight / 2) - ($WinHeight / 2);
 
-if (Test-Path $IconGoogle) {$hIcon = $Win32::LoadImage([IntPtr]::Zero,$IconGoogle, 1, 0, 0, 0x10)
-    if ($hIcon -ne [IntPtr]::Zero) { [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0, $hIcon); [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1,$hIcon) }
+if (Test-Path $IconGoogle) {$hIcon = $Win32::LoadImage([IntPtr]::Zero,$IconGoogle, 1, 0, 0, 0x10);
+    if ($hIcon -ne [IntPtr]::Zero) { 
+        [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]0,$hIcon); 
+        [void]$Win32::SendMessage($ConsoleHandle, 0x80, [IntPtr]1,$hIcon); 
+    }
 }
 
-[void]$Win32::SetWindowPos($ConsoleHandle, [IntPtr]::Zero, $LeftX,$CenterY, $WinWidth,$WinHeight, 0x0040)
+[void]$Win32::SetWindowPos($ConsoleHandle, [IntPtr]::Zero, $LeftX,$CenterY, $WinWidth,$WinHeight, 0x0040);
 
-$hMenu =$Win32::GetSystemMenu($ConsoleHandle,$false)
+$hMenu =$Win32::GetSystemMenu($ConsoleHandle,$false);
 if ($hMenu -ne [IntPtr]::Zero) {
-    [void]$Win32::DeleteMenu($hMenu, 0xF010, 0x0000) # Disable Move    
-    [void]$Win32::DeleteMenu($hMenu, 0xF060, 0x0000) # Disable Close
-    [void]$Win32::DeleteMenu($hMenu, 0xF030, 0x0000) # Disable Maximize
-    [void]$Win32::DeleteMenu($hMenu, 0xF000, 0x0000) # Disable Resize
+    [void]$Win32::DeleteMenu($hMenu, 0xF010, 0x0000);
+    [void]$Win32::DeleteMenu($hMenu, 0xF060, 0x0000);
+    [void]$Win32::DeleteMenu($hMenu, 0xF030, 0x0000);
+    [void]$Win32::DeleteMenu($hMenu, 0xF000, 0x0000);
 }
 
-Clear-Host
-$Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "Green"; Clear-Host
-Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan
-Write-Host "             $ConsoleTitle             " -ForegroundColor White
-Write-Host "      ==================================================" -ForegroundColor Cyan
-Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow
-Write-Host "      > Initializing..."
-Write-Host "      > Waiting for user input..." -ForegroundColor Gray
+Clear-Host;
+$Host.UI.RawUI.BackgroundColor = "Black"; 
+$Host.UI.RawUI.ForegroundColor = "Green"; 
+Clear-Host;
+Write-Host "`n`n`n      ==================================================" -ForegroundColor Cyan;
+Write-Host "             $ConsoleTitle             " -ForegroundColor White;
+Write-Host "      ==================================================" -ForegroundColor Cyan;
+Write-Host "`n      [ SYSTEM STATUS ]" -ForegroundColor Yellow;
+Write-Host "      > Initializing...";
+Write-Host "      > Waiting for user input..." -ForegroundColor Gray;
 
 # WinForm Setup
-$form = New-Object Windows.Forms.Form
-$form.Text = "$WindowTitle"
-$form.Size = New-Object Drawing.Size($WinWidth, $WinHeight)$form.BackColor = [Drawing.Color]::Black
-
-$form.Padding = New-Object Windows.Forms.Padding(3)
-
-$form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::None 
-$form.StartPosition = [Windows.Forms.FormStartPosition]::Manual$form.Location = New-Object Drawing.Point($RightX,$CenterY)
-$form.KeyPreview =$true
+$form = New-Object Windows.Forms.Form;
+$form.Text = "$WindowTitle";
+$form.Size = New-Object Drawing.Size($WinWidth, $WinHeight);$form.BackColor = [Drawing.Color]::Black;
+$form.Padding = New-Object Windows.Forms.Padding(3);$form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::None;
+$form.StartPosition = [Windows.Forms.FormStartPosition]::Manual;
+$form.Location = New-Object Drawing.Point($RightX,$CenterY);
+$form.KeyPreview =$true;
 
 $form.Add_Paint({
-    param($sender,$e)
-    $borderColor = [Drawing.Color]::Cyan$borderWidth = 2
-    
-    $pen = New-Object Drawing.Pen($borderColor, $borderWidth)$pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset 
-    
-    $rect =$form.ClientRectangle
-    $e.Graphics.DrawRectangle($pen,$rect)
-})
+    param($sender, $e);$borderColor = [Drawing.Color]::Cyan;
+    $borderWidth = 2;
+    $pen = New-Object Drawing.Pen($borderColor, $borderWidth);$pen.Alignment = [Drawing.Drawing2D.PenAlignment]::Inset;
+    $rect =$form.ClientRectangle;
+    $e.Graphics.DrawRectangle($pen,$rect);
+});
 
-if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG) }
+if (Test-Path $IconITG) { $form.Icon = New-Object Drawing.Icon($IconITG); }
 
-$global:TargetUSB = $null$rnd = New-Object System.Random
+$global:TargetUSB =$null;
+$rnd = New-Object System.Random;
 
 # --- [UI HEADER] ---
-$lblHeader = New-Object Windows.Forms.Label
-$lblHeader.Text = "--- VMD USB BUILDER v$AppVer Build$AppBuild ---"
-$lblHeader.ForeColor = [Drawing.Color]::Cyan$lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
-$lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter$lblHeader.Dock = [Windows.Forms.DockStyle]::Top
-$lblHeader.Height = 40$lblHeader.Add_MouseDown({ $form.Capture =$false }) 
-$form.Controls.Add($lblHeader)
+$lblHeader = New-Object Windows.Forms.Label;
+$lblHeader.Text = "--- VMD USB BUILDER v$AppVer Build$AppBuild ---";
+$lblHeader.ForeColor = [Drawing.Color]::Cyan;
+$lblHeader.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold);
+$lblHeader.TextAlign = [Drawing.ContentAlignment]::MiddleCenter;
+$lblHeader.Dock = [Windows.Forms.DockStyle]::Top;
+$lblHeader.Height = 40;
+$lblHeader.Add_MouseDown({ $form.Capture =$false; });
+$form.Controls.Add($lblHeader);
 
-$cmbUSB = New-Object Windows.Forms.ComboBox
-$cmbUSB.Width = 450; $cmbUSB.Height = 40; $cmbUSB.Location = New-Object Drawing.Point(90, 50)$cmbUSB.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold)
-$cmbUSB.BackColor = [Drawing.Color]::DimGray; $cmbUSB.ForeColor = [Drawing.Color]::White$cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
-$form.Controls.Add($cmbUSB)
+$cmbUSB = New-Object Windows.Forms.ComboBox;
+$cmbUSB.Width = 450; 
+$cmbUSB.Height = 40; 
+$cmbUSB.Location = New-Object Drawing.Point(90, 50);$cmbUSB.Font = New-Object Drawing.Font("Consolas", 12, [Drawing.FontStyle]::Bold);
+$cmbUSB.BackColor = [Drawing.Color]::DimGray; 
+$cmbUSB.ForeColor = [Drawing.Color]::White;
+$cmbUSB.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList;
+$form.Controls.Add($cmbUSB);
 
 # [FIX] Checkbox
-$cbShowAll = New-Object Windows.Forms.CheckBox
-$cbShowAll.Text = "Show All Drives"
-$cbShowAll.Font = New-Object Drawing.Font("Consolas", 9)
-$cbShowAll.ForeColor = [Drawing.Color]::Gray
-$cbShowAll.Location = New-Object Drawing.Point(90, 92)$cbShowAll.Size = New-Object Drawing.Size(200, 20)
-$form.Controls.Add($cbShowAll)
+$cbShowAll = New-Object Windows.Forms.CheckBox;
+$cbShowAll.Text = "Show All Drives";
+$cbShowAll.Font = New-Object Drawing.Font("Consolas", 9);
+$cbShowAll.ForeColor = [Drawing.Color]::Gray;
+$cbShowAll.Location = New-Object Drawing.Point(90, 92);$cbShowAll.Size = New-Object Drawing.Size(200, 20);
+$form.Controls.Add($cbShowAll);
 
-$script:cbShowAll =$cbShowAll 
+$script:cbShowAll =$cbShowAll;
 
 # Copy to Drive
-$btnCopy = New-Object Windows.Forms.Button
-$btnCopy.Text = "Copy to Drive >"
-$btnCopy.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold)
-$btnCopy.ForeColor = [Drawing.Color]::White
-$btnCopy.BackColor = [Drawing.Color]::RoyalBlue$btnCopy.FlatStyle = [Windows.Forms.FlatStyle]::Flat
-$btnCopy.Location = New-Object Drawing.Point(390, 90)$btnCopy.Size = New-Object Drawing.Size(150, 24)
-$form.Controls.Add($btnCopy)
-
-$lblStatus = New-Object Windows.Forms.Label
-$lblStatus.Text = "Scanning for USB..."
-$lblStatus.ForeColor = [Drawing.Color]::Yellow$lblStatus.Font = New-Object Drawing.Font("Consolas", 10)
-$lblStatus.TextAlign = [Drawing.ContentAlignment]::MiddleCenter$lblStatus.Location = New-Object Drawing.Point(4, 118)
-$lblStatus.Size = New-Object Drawing.Size(($WinWidth - 8), 20) 
-
-$form.Controls.Add($lblStatus)
-
-# --- [FUNCTIONS] ---
-
-function Update-Console { param($Msg,$Color="White"); Write-Host "      > $Msg" -ForegroundColor $Color }
-
-function Refresh-USB-List {
-    $SysDrive = $env:SystemDrive.Substring(0,1)$drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
-        if ($script:cbShowAll.Checked) {
-            ($_.DriveType -eq 'Removable' -or$_.DriveType -eq 'Fixed') -and $_.DriveLetter -ne$null -and $_.DriveLetter -ne$SysDrive
-        } else {
-            $_.DriveType -eq 'Removable' -and $_.DriveLetter -ne$null
-        }
-    } | Sort-Object DriveLetter
-
-    if ($cmbUSB.Items.Count -ne$drives.Count -or $cmbUSB.Items.Count -eq 0) {$cmbUSB.Items.Clear()
-        if ($drives) {
-            foreach ($d in $drives) {$SizeGB = [math]::Round($d.SizeRemaining / 1GB, 2)$Label = if ($d.FileSystemLabel) {$d.FileSystemLabel } else { "USB Drive" }
-                [void]$cmbUSB.Items.Add("[$($d.DriveLetter):] $Label ($SizeGB GB Free)")
-            }
-            if ($cmbUSB.SelectedIndex -eq -1 -and$cmbUSB.Items.Count -gt 0) { $cmbUSB.SelectedIndex = 0 } } else {$cmbUSB.Items.Clear()
-            if ($script:cbShowAll.Checked) {$cmbUSB.Text = "No Drives Found" } else { $cmbUSB.Text = "No USB Found" }
-        }
-    }
-    if ($cmbUSB.SelectedIndex -ne -1) {
-        $global:TargetUSB =$cmbUSB.SelectedItem.ToString().Substring(1, 2) + "\"
-        $lblStatus.Text = "Target Ready: $global:TargetUSB"; $lblStatus.ForeColor = [Drawing.Color]::Lime
-    } else {
-        $global:TargetUSB = $null; $lblStatus.Text = "Please Select Drive..."; $lblStatus.ForeColor = [Drawing.Color]::Red
-    }
-}
-
-function Start-Manual-Copy {
-    if ($global:TargetUSB -eq$null) {
-        [Windows.Forms.MessageBox]::Show("Please select a target drive first!", "Error")
-        return
-    }
-    
-    if (-not (Test-Path "$SupportDir\VMD_Installer.cmd")) {
-        [Windows.Forms.MessageBox]::Show("No drivers found in Temp folder!`nPlease press [1] - [5] to Build files first.", "Files Not Ready")
-        return
-    }
-
-    $ans = [Windows.Forms.MessageBox]::Show("Copy files to ALL Partitions on USB?", "Confirm Smart Copy", "YesNo", "Question")
-    if ($ans -eq "Yes") {
-        # [SMART COPY LOGIC INSERTED HERE]
-        $SelectedDriveLetter = $global:TargetUSB.Substring(0,1)
-        try {
-            $DiskNum = (Get-Partition -DriveLetter $SelectedDriveLetter).DiskNumber
-            $AllPartitions = Get-Partition -DiskNumber $DiskNum | Where-Object { $_.DriveLetter -ne 0 }
-            
-            foreach ($Part in $AllPartitions) {
-                $CurrentTarget = "$($Part.DriveLetter):\"
-                Update-Console "Target Detected: $CurrentTarget" "Yellow"
-                
-                # Always copy XML to ALL partitions
-                Update-Console "Copying .xml to $CurrentTarget..." "Cyan"
-                Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $CurrentTarget -Force
-                
-                # Copy Drivers only to large partition (>2GB)
-                $VolSize = (Get-Volume -DriveLetter $Part.DriveLetter).SizeRemaining
-                if ($VolSize -gt 2GB) { 
-                     Update-Console "Copying VMD Drivers to Main Partition ($CurrentTarget)..." "Cyan"
-                     Copy-Item -Path $SupportDir -Destination $CurrentTarget -Recurse -Force
-                }
-            }
-            Update-Console "--- COPY COMPLETE (ALL PARTITIONS) ---" "Green"
-            [Windows.Forms.MessageBox]::Show("Success! Files copied to all partitions on the USB.", "Success")
-            
-        } catch {
-            Update-Console "Smart Copy Failed. Fallback to single." "Red"
-            Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
-            Copy-Item -Path $SupportDir -Destination $global:TargetUSB -Recurse -Force
-            [Windows.Forms.MessageBox]::Show("Fallback copy completed.", "Warning")
-        }
-    }
-}
-
-function Open-Target {
-    if ($global:TargetUSB -ne $null) { Invoke-Item $global:TargetUSB } elseif (Test-Path $WorkDir) { Invoke-Item $WorkDir } 
-    else { [Windows.Forms.MessageBox]::Show("No target folder available.", "Info") }
-}
-
-function GoTo-BIOS {
-    if ([Windows.Forms.MessageBox]::Show("Restart to BIOS?", "GO2BIOS", "YesNo") -eq "Yes") {
-        try {
-            Start-Process "shutdown.exe" -ArgumentList "/r /fw /t 0" -NoNewWindow -ErrorAction Stop
-        } catch {
-            Start-Process "shutdown.exe" -ArgumentList "/r /t 0" -NoNewWindow
-        }
-    }
-}
-
-function Close-App {
-    $script:Running = $false
-    try { $timer.Stop() } catch {}
-    $form.Close()
-    [System.Environment]::Exit(0)
-}
-
-function Get-And-Extract-IntelEXE {
-    param ($Url, $DestName)
-    $ExePath = "$WorkDir\$DestName.exe"; $ExtractPath = "$WorkDir\Temp_Extract_$DestName"
-    Update-Console "Downloading $DestName..." "Cyan"
-    try { Invoke-WebRequest -Uri $Url -OutFile $ExePath -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop } 
-    catch { Update-Console "Download Failed!" "Red"; return }
-    
-    if (Test-Path $ExePath) {
-        Update-Console "Extracting drivers..." "Gray"
-        try {
-            Start-Process -FilePath $ExePath -ArgumentList "-extractdrivers `"$ExtractPath`"" -Wait -PassThru -WindowStyle Hidden
-            $InfFile = Get-ChildItem -Path $ExtractPath -Recurse -Filter "iaStorVD.inf" | Select-Object -First 1
-            if ($InfFile) {
-                $FinalDest = "$SupportDir\$DestName"
-                if (!(Test-Path $FinalDest)) { New-Item -ItemType Directory -Path $FinalDest | Out-Null }
-                Copy-Item -Path "$($InfFile.Directory.FullName)\*" -Destination $FinalDest -Recurse -Force
-                Update-Console "SUCCESS: $DestName Ready." "Green"
-            } else { Update-Console "iaStorVD.inf NOT FOUND." "Red" }
-            Remove-Item $ExePath -Force -ErrorAction SilentlyContinue
-            Remove-Item $ExtractPath -Recurse -Force -ErrorAction SilentlyContinue
-        } catch { Update-Console "Extraction Error." "Red" }
-    }
-}
-
-function Build-VMD-Process {
-    param($Mode)
-    Update-Console "--- STARTED BUILD PROCESS ---" "Yellow"
-    if (Test-Path $WorkDir) { Remove-Item $WorkDir -Recurse -Force -ErrorAction SilentlyContinue }
-    New-Item -ItemType Directory -Path $SupportDir -Force | Out-Null
-    Update-Console "Syncing GitHub Files..." "White"
-    try {
-        Invoke-WebRequest -Uri "$GitHubRaw/Autounattend.xml" -OutFile "$WorkDir\Autounattend.xml" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
-        Invoke-WebRequest -Uri "$GitHubRaw/VMD_Installer.cmd" -OutFile "$SupportDir\VMD_Installer.cmd" -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop
-    } catch { [Windows.Forms.MessageBox]::Show("GitHub Sync Failed. Check Internet.", "Error"); return }
-
-    if ($Mode -eq 1 -or $Mode -eq 2) { Get-And-Extract-IntelEXE $URL_V18 "VMD_v18" }
-    if ($Mode -eq 1 -or $Mode -eq 3) { Get-And-Extract-IntelEXE $URL_V19 "VMD_v19" }
-    if ($Mode -eq 1 -or $Mode -eq 4) { Get-And-Extract-IntelEXE $URL_V20 "VMD_v20" }
-    if ($Mode -eq 1 -or $Mode -eq 5) { Get-And-Extract-IntelEXE $URL_V21 "VMD_v21" }
-
-    if ((Get-ChildItem $SupportDir -Directory).Count -gt 0) {
-        if ($global:TargetUSB -eq $null) {
-            Refresh-USB-List
-            if ($global:TargetUSB -eq $null) {
-                 if ([Windows.Forms.MessageBox]::Show("Drivers are ready in Temp!`n`nInsert USB to copy?", "Ready", "YesNo", "Question") -eq "Yes") {
-                     Update-Console "Waiting for USB insertion..." "Yellow"
-                     while ($global:TargetUSB -eq $null -and $script:Running) {
-                         [System.Windows.Forms.Application]::DoEvents()
-                         Refresh-USB-List
-                         Start-Sleep -Milliseconds 500
-                         if ($form.IsDisposed) { return }
-                     }
-                     if (!$script:Running) { return }
-                 } else {
-                     Update-Console "Skipped USB Copy." "Yellow"
-                     [Windows.Forms.MessageBox]::Show("Files are in Temp folder.`nClick 'Open Target' to view.", "Finished")
-                     return
-                 }
-            }
-        }
-        
-        if ($global:TargetUSB -ne$null) {
-            # [SMART AUTO-COPY LOGIC INSERTED HERE]
-            $SelectedDriveLetter =$global:TargetUSB.Substring(0,1)
-            try {
-                $DiskNum = (Get-Partition -DriveLetter$SelectedDriveLetter).DiskNumber
-                $AllPartitions = Get-Partition -DiskNumber $DiskNum \vert{} Where-Object {$_.DriveLetter -ne 0 }
-                
-                foreach ($Part in $AllPartitions) {$CurrentTarget = "$($Part.DriveLetter):\"
-                    
-                    Update-Console "Syncing XML -> $CurrentTarget" "Cyan"
-                    Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $CurrentTarget -Force
-                    
-                    $VolSize = (Get-Volume -DriveLetter$Part.DriveLetter).SizeRemaining
-                    if ($VolSize -gt 2GB) {
-                        Update-Console "Syncing Drivers -> $CurrentTarget" "Cyan"
-                        Copy-Item -Path $SupportDir -Destination$CurrentTarget -Recurse -Force
-                    }
-                }
-            } catch {
-                Update-Console "Smart Copy Failed. Fallback." "Red"
-                Copy-Item -Path "$WorkDir\Autounattend.xml" -Destination $global:TargetUSB -Force
-                Copy-Item -Path $SupportDir -Destination$global:TargetUSB -Recurse -Force
-            }
-            
-            Update-Console "--- JOB COMPLETE ---" "Green"
-            [Windows.Forms.MessageBox]::Show("Complete! Files saved to USB.", "Success")
-        }
-    } else {
-        Update-Console "FAILED: No drivers found." "Red"
-        [Windows.Forms.MessageBox]::Show("Extraction Failed.", "Error")
-    }
-}
-
-# --- [BUTTONS] ---
-function Add-Btn {
-    param($Txt, $Y,$Color, $M,$IsBIOS=$false,$IsAction=$false)$b = New-Object Windows.Forms.Button
-    $W = if ($IsAction) { 220 } else { 450 }$X = if ($IsAction -and$M -eq "EXIT") { 320 } else { 90 }
-    
-    $b.Text = $Txt; $b.Size = New-Object Drawing.Size($W, 46);$b.Location = New-Object Drawing.Point($X,$Y)
-    $b.ForeColor = [Drawing.Color]::$Color; $b.FlatStyle = [Windows.Forms.FlatStyle]::Flat$b.Font = New-Object Drawing.Font("Consolas", 10, [Drawing.FontStyle]::Bold)
-    $b.Tag = $M$b | Add-Member -MemberType NoteProperty -Name "Origin" -Value $b.Location
-
-    $b.Add_MouseEnter({
-        $Shake = 3$NewX = $this.Origin.X +$rnd.Next(-$Shake,$Shake + 1)
-        $NewY =$this.Origin.Y + $rnd.Next(-$Shake, $Shake + 1)$this.Location = New-Object Drawing.Point($NewX,$NewY)
-    })
-
-    $b.Add_MouseLeave({
-        $this.Location =$this.Origin
-    })
-    
-    if ($IsBIOS) {$b.Add_Click({ GoTo-BIOS }) }
-    elseif ($M -eq "OPEN") { $b.Add_Click({ Open-Target }) }
-    elseif ($M -eq "EXIT") { $b.Add_Click({ Close-App }) }
-    else { $b.Add_Click({ Build-VMD-Process -Mode$this.Tag }) }
-    $form.Controls.Add($b)
-}
-
-Add-Btn "[ 1 ] Build USB (All VMDs)"    148 "Magenta" 1
-Add-Btn "[ 2 ] Build USB (v18 Only)"    206 "Yellow"  2
-Add-Btn "[ 3 ] Build USB (v19 Only)"    264 "Yellow"  3
-Add-Btn "[ 4 ] Build USB (v20 Only)"    322 "Yellow"  4
-Add-Btn "[ 5 ] Build USB (v21 Only)"    380 "Yellow"  5
-Add-Btn "[ B ] Go to Firmware/BIOS"     460 "Red"     "BIOS" $true
-Add-Btn "[ O ] Open Target!"            530 "Cyan"    "OPEN" $false$true
-Add-Btn "[ X ] Exit"                    530 "Green"   "EXIT" $false$true
-
-# [EVENTS]
-$cbShowAll.Add_CheckedChanged({ Refresh-USB-List })$btnCopy.Add_Click({ Start-Manual-Copy })
-
-$form.Add_KeyDown({
-    if ($_.KeyCode -eq 'D1' -or$_.KeyCode -eq 'NumPad1') { Build-VMD-Process -Mode 1 }
-    if ($_.KeyCode -eq 'D2' -or$_.KeyCode -eq 'NumPad2') { Build-VMD-Process -Mode 2 }
-    if ($_.KeyCode -eq 'D3' -or$_.KeyCode -eq 'NumPad3') { Build-VMD-Process -Mode 3 }
-    if ($_.KeyCode -eq 'D4' -or$_.KeyCode -eq 'NumPad4') { Build-VMD-Process -Mode 4 }
-    if ($_.KeyCode -eq 'D5' -or$_.KeyCode -eq 'NumPad5') { Build-VMD-Process -Mode 5 }
-    if ($_.KeyCode -eq 'B') { GoTo-BIOS }
-    if ($_.KeyCode -eq 'O') { Open-Target }
-    if ($_.KeyCode -eq 'X') { Close-App }
-})
-
-$form.Add_FormClosed({ Close-App })
-
-$timer = New-Object Windows.Forms.Timer; $timer.Interval = 2000; $timer.Add_Tick({ Refresh-USB-List });$timer.Start()
-Refresh-USB-List
-
-$lnkGit = New-Object Windows.Forms.LinkLabel
-$lnkGit.Text = "#Link Github"
-$lnkGit.LinkColor = [Drawing.Color]::Cyan
-$lnkGit.ActiveLinkColor = [Drawing.Color]::Yellow$lnkGit.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold)
-$lnkGit.AutoSize =$true
-$lnkGit.Location = New-Object Drawing.Point(530, 695)$lnkGit.Add_LinkClicked({ Start-Process "https://github.com/itgroceries-sudo/VMD-USB-Builder/tree/main" })
-$form.Controls.Add($lnkGit)
-
-$footer = New-Object Windows.Forms.Label
-$footer.Text = "Powered by IT Groceries Shop && my Teams (v$AppVer Build$AppBuild Update:$AppDate)"
-$footer.ForeColor = [Drawing.Color]::Gray; $footer.Dock = [Windows.Forms.DockStyle]::Bottom; $footer.TextAlign = [Drawing.ContentAlignment]::MiddleCenter
-$form.Controls.Add($footer)
-
-[void]$form.ShowDialog()
-Close-App
+$btnCopy = New-Object Windows.Forms.Button;
+$btnCopy.Text = "Copy to Drive >";
+$btnCopy.Font = New-Object Drawing.Font("Consolas", 9, [Drawing.FontStyle]::Bold);
+$btnCopy.ForeColor = [Drawing.Color]::White; $
