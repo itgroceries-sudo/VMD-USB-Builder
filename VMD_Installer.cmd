@@ -3,7 +3,7 @@ chcp 65001 >nul
 SetLocal EnableDelayedExpansion
 
 :: -----------------------------------------------------------------------------
-:: 1. ADMIN CHECK & RELAUNCH (Simplified & Stable)
+:: 1. ตรวจสอบสิทธิ์ Administrator และรันใหม่หากยังไม่มีสิทธิ์
 :: -----------------------------------------------------------------------------
 net session >nul 2>&1
 if errorlevel 1 (
@@ -12,7 +12,7 @@ if errorlevel 1 (
 )
 
 :: -----------------------------------------------------------------------------
-:: 2. CORE SETUP & COLOR SETUP
+:: 2. ตั้งค่าเริ่มต้นและขนาดหน้าต่าง
 :: -----------------------------------------------------------------------------
 :START_SCRIPT
 cd /D "%~dp0"
@@ -20,7 +20,7 @@ title VMD Driver Installer by IT Groceries Shop
 mode con:cols=80 lines=34
 
 :: -----------------------------------------------------------------------------
-:: X. ANSI COLOR GENERATION (MUST BE IN ANSI OR UTF-8 WITHOUT BOM)
+:: X. สร้างตัวแปรรหัสสี ANSI (ต้องบันทึกไฟล์เป็น ANSI หรือ UTF-8 without BOM)
 :: -----------------------------------------------------------------------------
 for /F "tokens=1,2 delims=#" %%a in ('"prompt #$H#$E# & echo on & for %%b in (1) do rem"') do set "ESC=%%b"
 set "Green=!ESC![32m"
@@ -33,14 +33,14 @@ set "Reset=!ESC![0m"
 set "Bold=!ESC![1m"
 
 :: -----------------------------------------------------------------------------
-:: 3. VERSION
+:: 3. ข้อมูลเวอร์ชัน
 :: -----------------------------------------------------------------------------
-set "VER=V18.0.0"
-set "DATE_VAL=2026-06-12"
+set "VER=V21.0.0"
+set "DATE_VAL=2026-11-12"
 set "CURRENT_VER=!VER! (!DATE_VAL!)"
 
 :: =============================================================================
-:: [ Lvl 99 ] AUTO / SILENT MODE HANDLER ( %1 )
+:: [ Lvl 99 ] ตัวจัดการโหมดอัตโนมัติ / เงียบ ( %1 )
 :: =============================================================================
 set "SILENT_MODE=0"
 if /i "%~1"=="/SILENT" (
@@ -66,8 +66,9 @@ if not "!DETECTED_GEN:12th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v19"
 if not "!DETECTED_GEN:13th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v20"
 if not "!DETECTED_GEN:14th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v20"
 if not "!DETECTED_GEN:15th=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v21"
+if not "!DETECTED_GEN:Core Ultra=!"=="!DETECTED_GEN!" set "AUTO_FOLDER=VMD_v21"
 
-:: 4. ถ้าแมตช์เจอ ให้ฉีดไดรเวอร์แล้วชิ่งปิดหน้าต่างทันที!
+:: 4. ถ้าแมตช์เจอ ให้ฉีดไดรเวอร์แล้วปิดหน้าต่างทันที
 if defined AUTO_FOLDER (
     call :InstallDriver "!AUTO_FOLDER!"
 )
@@ -75,13 +76,13 @@ exit
 
 :: =============================================================================
 :: -----------------------------------------------------------------------------
-:: 5. MAIN MENU
+:: 5. เมนูหลัก (MAIN MENU)
 :: -----------------------------------------------------------------------------
 :MAIN_MENU
 cls
 
 :: -----------------------------------------------------------------------------
-:: 4. REAL-TIME WINDOWS SEARCH
+:: 4. ค้นหาพาร์ติชันที่มี Windows ติดตั้งอยู่
 :: -----------------------------------------------------------------------------
 set "WIN_FOUND=0"
 set "TARGET_OS_DRIVE="
@@ -96,12 +97,12 @@ for %%d in (C D E F G H I J K L M N O P Q R S T U V W Y) do (
 )
 
 :: -----------------------------------------------------------------------------
-:: 4.1 HARDWARE ID SCANNING
+:: 4.1 สแกนตรวจสอบ Hardware ID ของ VMD
 :: -----------------------------------------------------------------------------
 CALL :SCAN_VMD_HARDWARE
 
 :: -----------------------------------------------------------------------------
-:: MENU DISPLAY
+:: แสดงผลหน้าจอเมนูหลัก
 :: -----------------------------------------------------------------------------
 echo.
 echo !Bold!!White!================================================================================!Reset!
@@ -126,7 +127,7 @@ if defined DETECTED_GEN (
 )
 echo !White!--------------------------------------------------------------------------------!Reset!
 
-:: Check and display boot mode
+:: ตรวจสอบและแสดงผลโหมดการบูต (UEFI / BIOS)
 if Exist X:\Windows\ (
     Call :UEFICHECK_WINPE
 ) ELSE (
@@ -174,7 +175,7 @@ if "!WIN_FOUND!"=="1" (
 echo !Bold!!Yellow!Enter choice (18, 19, 20, 21, R/S/B/X): !Reset!
 set /p CHOICE=
 
-:: Input Check
+:: ตรวจสอบค่าที่ผู้ใช้ป้อนเข้ามา
 if "!CHOICE!"=="18" GOTO :LOAD_V18
 if "!CHOICE!"=="19" GOTO :LOAD_V19
 if "!CHOICE!"=="20" GOTO :LOAD_V20
@@ -186,7 +187,7 @@ if "!WIN_FOUND!"=="1" (
     if /i "!CHOICE!"=="B" GOTO :DO_FW_REBOOT
 )
 
-:: Input Validation Loop
+:: แจ้งเตือนเมื่อป้อนค่าไม่ถูกต้อง
 echo.
 echo !Red!Invalid input. Please enter 18, 19, 20, 21, R, S, X!Reset!
 if "!WIN_FOUND!"=="1" echo !Red!or B (for BIOS/Firmware)!Reset!
@@ -196,7 +197,7 @@ pause >nul
 GOTO :MAIN_MENU
 
 :: -----------------------------------------------------------------------------
-:: 6. INSTALLATION HANDLERS
+:: 6. ตัวจัดการการติดตั้งไดรเวอร์แต่ละเวอร์ชัน
 :: -----------------------------------------------------------------------------
 :LOAD_V18
 call :InstallDriver "VMD_v18"
@@ -215,7 +216,7 @@ call :InstallDriver "VMD_v21"
 GOTO :MAIN_MENU
 
 :: -----------------------------------------------------------------------------
-:: SUBROUTINE: InstallDriver
+:: SUBROUTINE: InstallDriver (โหลดไดรเวอร์ด้วย drvload)
 :: -----------------------------------------------------------------------------
 :InstallDriver
 set "TARGET_DIR=%~dp0%~1"
@@ -236,7 +237,7 @@ if errorlevel 1 (
     EXIT /B
 )
 
-:: Install Driver
+:: วนลูปโหลดไฟล์ .inf ทั้งหมดในโฟลเดอร์
 for /R %%f in (*.inf) do (
     echo Loading: %%~nf.inf ...
     drvload "%%f" >nul 2>&1
@@ -251,7 +252,7 @@ popd
 :: ตัดจบตรงนี้ถ้าเป็นโหมด SILENT
 if "!SILENT_MODE!"=="1" EXIT
 
-:: Check Disk
+:: แสดงรายการดิสก์หลังจากโหลดไดรเวอร์
 echo.
 echo !Yellow![CHECK] Listing Disks (wmic/PowerShell)!Reset!
 if Exist X:\Windows\ (
@@ -265,7 +266,7 @@ ping 127.0.0.1 -n 4 >nul
 EXIT /B
 
 :: -----------------------------------------------------------------------------
-:: 7. POWER ACTIONS
+:: 7. คำสั่งจัดการพลังงาน (Restart / Shutdown / BIOS)
 :: -----------------------------------------------------------------------------
 :DO_REBOOT
 if exist "!TARGET_OS_DRIVE!\Windows\System32\shutdown.exe" (
@@ -298,7 +299,7 @@ ping 127.0.0.1 -n 4 >nul
 exit
 
 :: -----------------------------------------------------------------------------
-:: 8. BOOT MODE CHECK SUBROUTINES
+:: 8. ตรวจสอบโหมดการบูต (UEFI / BIOS)
 :: -----------------------------------------------------------------------------
 :UEFICHECK_WINPE
 set "BOOT_MODE_FINAL=BIOS"
@@ -329,7 +330,7 @@ if "!BOOT_MODE_FINAL!"=="UEFI" (
 goto :eof
 
 :: -----------------------------------------------------------------------------
-:: 9. HARDWARE ID SCANNING SUBROUTINE (รองรับ v18 ถึง v21)
+:: 9. สแกนตรวจสอบ Hardware ID ของ VMD (รองรับ v18 ถึง v21)
 :: -----------------------------------------------------------------------------
 :SCAN_VMD_HARDWARE
 set "DETECTED_GEN="
@@ -350,14 +351,20 @@ if not defined DETECTED_GEN (
     if !errorlevel! equ 0 set "DETECTED_GEN=Intel 13th/14th Gen (Raptor Lake)"
 )
 
-:: 15th Gen+ / Newer VMD (เพิ่ม Hardware ID รองรับ v21 เพิ่มเติมตามรุ่นใหม่)
+:: Core Ultra Series 1 / 2 & 15th Gen+ VMD (v21: DEV_7D0B, DEV_AE7F, DEV_A87F, DEV_B07F)
 if not defined DETECTED_GEN (
-    reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /k /f "VEN_8086&DEV_" >nul 2>&1
-    :: หรือสามารถระบุ Hardware ID เฉพาะของ v21 เพิ่มตรงนี้ได้ครับ หากเช็คจาก INF ของ v21
-    set "DETECTED_GEN=Intel 15th Gen / New VMD"
+    for %%H in (7D0B AE7F A87F B07F) do (
+        if not defined DETECTED_GEN (
+            reg query "HKLM\SYSTEM\CurrentControlSet\Enum\PCI" /s /k /f "VEN_8086&DEV_%%H" >nul 2>&1
+            if !errorlevel! equ 0 set "DETECTED_GEN=Intel 15th Gen / Core Ultra (VMD v21)"
+        )
+    )
 )
 goto :eof
 
+:: -----------------------------------------------------------------------------
+:: 10. เตรียมข้อมูลรายการดิสก์สำหรับแสดงในเมนูหลัก
+:: -----------------------------------------------------------------------------
 :PREPARE_DISK_INFO
 set "DISK_LINE_1=!Red!No Disk Found!Reset!"
 set "DISK_LINE_2="
