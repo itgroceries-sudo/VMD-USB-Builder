@@ -1,14 +1,14 @@
 # 🚀 VMD Driver Cloud Installer & USB Builder
 ### *Powered by IT Groceries Shop*
 
-![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-2.0_Build_16.8_Stable-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg) ![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue.svg) ![Version](https://img.shields.io/badge/Version-2.1_Build_17.2_Stable-magenta.svg) ![Intel](https://img.shields.io/badge/Driver%20Source-Official%20Intel-0071C5.svg)
 
 **ทางออกสำหรับปัญหา "มองไม่เห็น SSD" (No Drives Found) ระหว่างลง Windows**
 ทำงานอัตโนมัติ 100% | อัจฉริยะ | ไดรเวอร์สดใหม่เสมอ
 
 ---
 
-![VMD USB Builder Interface](https://github.com/user-attachments/assets/b0b9e85a-37b4-497c-8e61-0951b7ca22c5)
+![VMD USB Builder Interface](https://github.com/user-attachments/assets/f0ae4dd4-3c19-491f-abfd-7bef2e0733ea)
 
 ---
 
@@ -21,20 +21,20 @@
 ### 🛠 ส่วนที่ 1: ระบบสร้าง USB อัจฉริยะ (The Smart Builder)
 *ทำงานบน Windows ปกติ เพื่อเตรียมไฟล์ลง USB*
 
-**✨ ฟีเจอร์เด่นในเวอร์ชัน 2.0:**
-* **🚀 Hybrid Engine:** เขียนด้วยเทคนิค Hybrid (Batch + PowerShell) ทำให้รันไฟล์ `.cmd` ได้ทันทีโดยไม่ต้องตั้งค่า Execution Policy
-* **📡 Cloud & Offline Mode:**
+**✨ ฟีเจอร์เด่นในเวอร์ชัน 2.1:**
+- **🚀 Hybrid Engine:** เขียนด้วยเทคนิค Hybrid (Batch + PowerShell) ทำให้รันไฟล์ `.cmd` ได้ทันทีโดยไม่ต้องตั้งค่า Execution Policy
+- **📡 Cloud & Offline Mode:**
     * **Online:** ดึงไฟล์ `SetupRST.exe` ตัวล่าสุดจาก Server ของ Intel โดยตรง
     * **Offline:** หากไม่มีเน็ต หรือไฟล์ถูกโหลดไว้แล้ว ระบบจะดึงไฟล์จาก Cache มาใช้งานต่อได้ทันที
-* **🖥️ Dual-Window UI:** แสดงผลแบบมืออาชีพ
+- **🖥️ Dual-Window UI:** แสดงผลแบบมืออาชีพ
     * **Console:** จอซ้ายสำหรับดู Log การทำงานแบบ Real-time
     * **GUI:** จอขวาสำหรับควบคุมที่ใช้งานง่าย
-* **🎮 Hybrid Control:** รองรับการสั่งงานครบทุกรูปแบบ ทั้งการใช้ **เมาส์ (Mouse)** คลิกปุ่ม, หรือกด **คีย์บอร์ด (Numpad 1-4)** เพื่อความรวดเร็ว
-* **💾 Smart Drive Selector:**
+- **🎮 Hybrid Control:** รองรับการสั่งงานครบทุกรูปแบบ ทั้งการใช้ **เมาส์ (Mouse)** คลิกปุ่ม, หรือกด **คีย์บอร์ด (Numpad 1-5)** เพื่อความรวดเร็ว
+- **💾 Smart Drive Selector:**
     * มี Dropdown เลือก Drive ที่จะลงไฟล์ พร้อมบอกพื้นที่ว่าง
     * **Show All Drives:** ติ๊กเลือกเพื่อลงไฟล์ใน External HDD หรือ NVMe Box ได้ (โหมดช่าง)
     * **Manual Copy:** ปุ่มลัดสำหรับก๊อปปี้ไฟล์ลงไดรฟ์ที่เลือกได้ทันที
-* **⚡ Auto-Extraction:** ใช้เทคนิคพิเศษในการ "แงะ" ไฟล์ไดรเวอร์ (.inf/.sys) ออกมาจากตัวติดตั้งของ Intel โดยอัตโนมัติ
+- **⚡ Auto-Extraction:** ใช้เทคนิคพิเศษในการ "แงะ" ไฟล์ไดรเวอร์ (.inf/.sys) ออกมาจากตัวติดตั้งของ Intel โดยอัตโนมัติ (รองรับโครงสร้างไฟล์ใหม่ของ v21)
 
 ---
 
@@ -62,7 +62,7 @@
 
 1.  **⚡ Auto-Launch (XML):** ทันทีที่บูต USB เข้าหน้า Setup ไฟล์ `Autounattend.xml` จะสั่งให้สคริปต์ `VMD_Installer.cmd` เด้งขึ้นมาทำงานทันที
 2.  **💿 Smart Scan:** ระบบจะสแกนหาว่าในเครื่องมี Windows เดิมอยู่หรือไม่ ถ้าเจอจะขึ้นตัวหนังสือสีเขียวแจ้งเตือน
-3.  **🧠 CPU Detection:** สคริปต์จะอ่านค่า Hardware ID และบอกรุ่น CPU (Gen 11/12/13+) ให้คุณทราบ เพื่อให้เลือกไดรเวอร์ได้ถูกต้อง
+3.  **🧠 CPU Detection:** สคริปต์จะอ่านค่า Hardware ID และบอกรุ่น CPU (Gen 11-15+/Core Ultra) ให้คุณทราบ เพื่อให้เลือกไดรเวอร์ได้ถูกต้อง
 4.  **🔄 Success Verification:** หลังจากลงไดรเวอร์เสร็จ ระบบจะ Rescan อีกครั้ง หากเจอ Partition แล้ว จะมี Popup แจ้งเตือนว่า *"Windows Found!"*
 5.  **🆘 Emergency BIOS [B]:** หากสคริปต์ทำงานเสร็จแล้ว ปุ่ม **[ B ] Go to Firmware/BIOS** จะปรากฏขึ้นเพื่อให้คุณรีสตาร์ทเข้า BIOS ได้ทันทีโดยไม่ต้องกด F2 รัวๆ
 
@@ -78,7 +78,7 @@
 2.  ในหน้าต่างโปรแกรม:
     * เสียบ USB Flash Drive
     * เลือกไดรฟ์จากช่อง Dropdown ด้านบน
-    * กดปุ่ม **[ 1 ] Build USB (All)** เพื่อโหลดและแตกไฟล์ไดรเวอร์
+    * กดปุ่ม **[ 1 ] Build USB (All)** เพื่อโหลดและแตกไฟล์ไดรเวอร์ทั้งหมด (v18-v21)
     * (ถ้าเสียบ USB ทีหลัง) ให้กดปุ่ม **[ Copy to Drive > ]**
 3.  รอจนกว่าโปรแกรมจะแจ้งว่า **"Complete!"**
 
@@ -86,7 +86,7 @@
 1.  นำ USB ที่ได้ไปเสียบกับเครื่องคอมพิวเตอร์เป้าหมาย
 2.  บูตเข้า USB เพื่อลง Windows ตามปกติ
 3.  **ก่อนเข้าหน้าแบ่งพาร์ติชัน** หน้าต่าง VMD Installer สีดำจะเด้งขึ้นมา
-4.  กดตัวเลขตามรุ่น CPU ที่หน้าจอมันแนะนำ (เช่น กด `[4]` สำหรับ Gen 13/14 หรือกด `[1]`, `[2]`, `[3]` ตามรุ่นของ CPU)
+4.  กดตัวเลขตามรุ่น CPU ที่หน้าจอมันแนะนำ (เช่น กด `[ 20 ]` สำหรับ Gen 13/14, กด `[ 21 ]` สำหรับ Gen 15/Core Ultra)
 5.  เมื่อเสร็จแล้ว หน้าต่างจะปิดลงเอง และคุณจะมองเห็น SSD พร้อมสำหรับลง Windows!
 
 ---
@@ -98,19 +98,20 @@
 | **Gen 10 - 11** (Ice/Tiger Lake) | **v18.x** | `VMD_v18` | ✅ รองรับ |
 | **Gen 12** (Alder Lake) | **v19.x** | `VMD_v19` | ✅ รองรับ |
 | **Gen 13 - 14+** (Raptor Lake) | **v20.x** | `VMD_v20` | ✅ รองรับ |
+| **Gen 15+ / Core Ultra 1-2** | **v21.x** | `VMD_v21` | ✅ รองรับ (New!) |
 
 ---
 
 ## ⚠️ สิ่งที่ต้องมี
-* **เครื่องสำหรับทำ USB:** Windows 10/11 และต่ออินเทอร์เน็ต (สำหรับการโหลดครั้งแรก)
-* **เครื่องเป้าหมาย:** คอมพิวเตอร์ Intel ที่เปิดโหมด VMD/RST ใน BIOS ไว้
+- **เครื่องสำหรับทำ USB:** Windows 10/11 และต่ออินเทอร์เน็ต (สำหรับการโหลดครั้งแรก)
+- **เครื่องเป้าหมาย:** คอมพิวเตอร์ Intel ที่เปิดโหมด VMD/RST ใน BIOS ไว้
 
 ---
 
 ## 📜 เครดิต (Credits)
 พัฒนาด้วย ❤️ โดย **IT Groceries Shop**
-* *Script Logic:* Hybrid PowerShell & Batch
-* *Driver Source:* Intel Corporation
+- *Script Logic:* Hybrid PowerShell & Batch
+- *Driver Source:* Intel Corporation
 
 ---
 
@@ -123,4 +124,3 @@
   </a>
 </div>
 </details>
-
