@@ -4,7 +4,7 @@
 
 # =========================================================
 #  VMD USB Builder by IT Groceries Shop
-#  Version: 2.1 (Build 17.0 Smart-Copy + VMD v21)
+#  Version: 2.1 (Build 17.1 Smart-Copy + VMD v21)
 # =========================================================
 
 $ErrorActionPreference = 'SilentlyContinue';
@@ -12,7 +12,7 @@ $ErrorActionPreference = 'SilentlyContinue';
 
 # --- [VERSION CONTROL] ---
 $AppVer   = "2.1";
-$AppBuild = "17.0 Smart";
+$AppBuild = "17.1 Smart";
 $AppDate  = "12-11-2026";
 
 # [DATE CONFIG] Get Current Date
@@ -21,20 +21,24 @@ $DateStr = Get-Date -Format "dd-MM-yyyy";
 $WindowTitle  = "IT GROCERIES GUI [Date: $DateStr]";
 $ConsoleTitle = "IT GROCERIES CONSOLE [Date: $DateStr]";
 
-# --- [SELF-DOWNLOAD & ADMIN CHECK] ---
+# --- [SELF-SAVE & ADMIN CHECK (FIXED)] ---
 $CurrentScript = $PSCommandPath;
 if (-not $CurrentScript) {
-    # Web-Launch Mode
-    $WebSource = "https://raw.githubusercontent.com/itgroceries-sudo/VMD-USB-Builder/main/USB_Builder.ps1";
-    $TempScript = "$env:TEMP\USB_Builder.ps1";
-    Write-Host "Downloading script..." -ForegroundColor Cyan;
-    try { Invoke-WebRequest -Uri $WebSource -OutFile $TempScript -UserAgent "Mozilla/5.0" -UseBasicParsing -ErrorAction Stop; } 
-    catch { Write-Host "Download Error." -ForegroundColor Red; Start-Sleep 3; exit; }
-    Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs;
-    exit;
+    $CurrentScript = $ScriptPath;
 }
 
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+$IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator);
+
+if (-not $CurrentScript) {
+    # ถ้ารันผ่าน iex(irm ...) ให้เซฟโค้ดจาก RAM ลง Temp โดยตรง ไม่ต้องดาวน์โหลดซ้ำ
+    $TempScript = "$env:TEMP\USB_Builder.ps1";
+    $MyInvocation.MyCommand.ScriptBlock.ToString() | Set-Content -Path $TempScript -Encoding UTF8 -Force;
+    if (-not $IsAdmin) {
+        Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$TempScript`"" -Verb RunAs;
+        exit;
+    }
+    $CurrentScript = $TempScript;
+} elseif (-not $IsAdmin) {
     Start-Process PowerShell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CurrentScript`"" -Verb RunAs;
     exit;
 }
